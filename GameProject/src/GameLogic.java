@@ -67,7 +67,7 @@ public class GameLogic implements IGameLogic {
 			}
 		}
 		return 0;*/
-		return mini_max.miniMax(gameboard);
+		return mini_max.miniMax(gameBoard);
 		
 	}
 

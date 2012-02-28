@@ -76,7 +76,7 @@ public class MiniMax{
 		for (int a:list_of_action){
 			
 			v = Math.min(v,maxDecision(result(gameboard,a),alpha,beta));
-			if(v<=alphs){
+			if(v<=alpha){
 				return v;
 			}
 			
