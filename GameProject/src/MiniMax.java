@@ -62,7 +62,22 @@ public class MiniMax{
 	
 	public int minDecision(int[][] gameboard, int alpha, int beta){
 		
-		int v=0;
+		if(terminalState(gameboard)){
+			
+			//return Utility(state,player(state));
+		}
+		//assign the min value of the integers to this variable
+		int v = Integer.MAX_VALUE;
+		actions(gameboard);
+		for (int a:list_of_action){
+			
+			v = Math.min(v,maxDecision(result(gameboard,a),alpha,beta));
+			if(v<=alphs){
+				return v;
+			}
+			
+			beta = Math.min(beta, v);
+		}
 		
 		return v;
 	}
