@@ -1,8 +1,6 @@
 import java.util.Iterator;
 import java.util.LinkedList;
 
-
-
 public class MiniMax{
 	
 	private int x = 0;//coloumns
@@ -23,7 +21,7 @@ public class MiniMax{
 		return false;
 	}
 	
-	
+
 	private LinkedList<Integer> actions(int[][]gameboard){		
 		LinkedList <Integer> list_of_action = new LinkedList<Integer>();
 		
@@ -37,8 +35,14 @@ public class MiniMax{
 		}	
 		return list_of_action;// i don't never have to came here 
 	}
-	//private utility(int[][] gameboard, )
-	public int maxDecision(int[][] gameboard, int alpha, int beta){
+	
+	public int miniMax(int[][] gameboard){
+		
+		int v = maxDecision(gameboard,Integer.MIN_VALUE,Integer.MAX_VALUE);
+		return v;
+	}
+	
+	private int maxDecision(int[][] gameboard, int alpha, int beta){
 		
 		if(terminalState(gameboard)){
 			
@@ -60,7 +64,7 @@ public class MiniMax{
 		return v;
 	}
 	
-	public int minDecision(int[][] gameboard, int alpha, int beta){
+	private int minDecision(int[][] gameboard, int alpha, int beta){
 		
 		if(terminalState(gameboard)){
 			

@@ -7,7 +7,8 @@ public class GameLogic implements IGameLogic {
 	private int lastX;
 	/** This contains the last y coordinate where a coins where put. */
 	private int lastY;
-
+	private MiniMax mini_max;
+	
 	public GameLogic() {
 		// TODO Write your implementation for this method
 	}
@@ -16,6 +17,7 @@ public class GameLogic implements IGameLogic {
 		this.x = x;
 		this.y = y;
 		this.playerID = playerID;
+		mini_max = new MiniMax(x,y,playerID);
 		this.lastX = Integer.MIN_VALUE;
 		this.lastY = Integer.MIN_VALUE;
 		this.gameBoard = new int[x][y];
@@ -54,7 +56,8 @@ public class GameLogic implements IGameLogic {
 	}
 
 	public int decideNextMove() {
-		for (int i = 0; i < this.x; i++) {
+		
+		/*for (int i = 0; i < this.x; i++) {
 			for (int j = 0; j < this.y; j++) {
 				// If the position is already occupated continue to the next
 				if (this.gameBoard[i][j] != Integer.MIN_VALUE) {
@@ -63,7 +66,9 @@ public class GameLogic implements IGameLogic {
 				return i;
 			}
 		}
-		return 0;
+		return 0;*/
+		return mini_max.miniMax(gameboard);
+		
 	}
 
 	/**
