@@ -3,6 +3,10 @@ public class GameLogic implements IGameLogic {
 	private int y = 0;
 	private int playerID;
 	private int[][] gameBoard;
+	/** This contains the last x coordinate where a coins where put. */
+	private int lastX;
+	/** This contains the last y coordinate where a coins where put. */
+	private int lastY;
 
 	public GameLogic() {
 		// TODO Write your implementation for this method
@@ -12,21 +16,26 @@ public class GameLogic implements IGameLogic {
 		this.x = x;
 		this.y = y;
 		this.playerID = playerID;
+		this.lastX = Integer.MIN_VALUE;
+		this.lastY = Integer.MIN_VALUE;
 		this.gameBoard = new int[x][y];
 		for (int i = 0; i < this.x; i++) {
 			for (int j = 0; j < this.y; j++) {
 				this.gameBoard[i][j] = Integer.MIN_VALUE;
 			}
 		}
-		// TODO Write your implementation for this method
 	}
 
 	public Winner gameFinished() {
 		Winner result = Winner.NOT_FINISHED;
+		long start = System.currentTimeMillis();
 		if ((result = this.checkVerticalPositions()) != Winner.NOT_FINISHED) {
 		} else if ((result = this.checkHorizontalPositions()) != Winner.NOT_FINISHED) {
+		} else if ((result = this.checkCrossPositions()) != Winner.NOT_FINISHED) {
 		} else if ((result = this.checkTie()) == Winner.TIE) {
 		}
+		System.out.println("Time: "
+				+ Long.toString(System.currentTimeMillis() - start));
 		return result;
 	}
 
@@ -39,6 +48,8 @@ public class GameLogic implements IGameLogic {
 			// If the position is free it stores the new coin and finishes the
 			// method
 			this.gameBoard[column][i] = playerID;
+			this.lastX = column;
+			this.lastY = i;
 			break;
 		}
 	}
@@ -56,77 +67,141 @@ public class GameLogic implements IGameLogic {
 		return 0;
 	}
 
+	/**
+	 * Check if the game have finished with a tie.
+	 * 
+	 * @return Winner.NOT_FINISHED if the game hasn't finished or Winner.TIE if
+	 *         the game has finished and none player has won.
+	 */
 	private Winner checkTie() {
+		// Check the top position of every column
 		for (int i = 0; i < this.x; i++) {
-			for (int j = 0; j < this.y; j++) {
-				if (this.gameBoard[i][j] == Integer.MIN_VALUE) {
-					return Winner.NOT_FINISHED;
-				}
+			if (this.gameBoard[i][this.y - 1] == Integer.MIN_VALUE) {
+				return Winner.NOT_FINISHED;
 			}
 		}
 		return Winner.TIE;
 	}
 
+	/**
+	 * Check if there are four coins connected in vertical.
+	 * 
+	 * @return Winner.NOT_FINISHED if there aren't four coins in a row in
+	 *         vertical or the number of the player who has won if any.
+	 */
 	private Winner checkVerticalPositions() {
 
 		// Check the vertical positions
-		for (int i = 0; i < this.x; i++) {
-			int coinBefore = Integer.MIN_VALUE;
-			int coinsConnected = 1;
-			for (int j = 0; j < this.y; j++) {
-				// If there isn't more coins it finish the checking
-				if (this.gameBoard[i][j] == Integer.MIN_VALUE) {
-					break;
-				}
-				// If the coins in the current position is the same than before
-				// it increment the counter.
-				else if (this.gameBoard[i][j] == coinBefore) {
-					coinsConnected++;
-				}
-				// Else restart the counter.
-				else {
-					coinsConnected = 1;
-					coinBefore = this.gameBoard[i][j];
-				}
-				// Check if there are four coins in a row of the same player
-				if (coinsConnected == 4) {
-					return (this.playerID == 1) ? Winner.PLAYER1
-							: Winner.PLAYER2;
-				}
+		int coinBefore = Integer.MIN_VALUE;
+		int coinsConnected = 1;
+		for (int j = Math.max(0, this.lastY - 3); j <= this.lastY; j++) {
+			// If the coins in the current position is the same than before
+			// it increment the counter.
+			if (this.gameBoard[this.lastX][j] == coinBefore) {
+				coinsConnected++;
+			}
+			// Else restart the counter.
+			else {
+				coinsConnected = 1;
+				coinBefore = this.gameBoard[this.lastX][j];
+			}
+			// Check if there are four coins in a row of the same player
+			if (coinsConnected == 4) {
+				return (this.playerID == 1) ? Winner.PLAYER1 : Winner.PLAYER2;
 			}
 		}
 		return Winner.NOT_FINISHED;
 	}
 
+	/**
+	 * Check if there are four coins connected in horizontal.
+	 * 
+	 * @return Winner.NOT_FINISHED if there aren't four coins in a row in
+	 *         horizontal or the number of the player who has won if any.
+	 */
 	private Winner checkHorizontalPositions() {
 
 		// Check the horizontal positions
-		for (int j = 0; j < this.y; j++) {
-			int playerConnecting = Integer.MIN_VALUE;
-			int coinsConnected = 1;
-			for (int i = 0; i < this.x; i++) {
-				// If there isn't more coins it finish the checking
-				if (this.gameBoard[i][j] == Integer.MIN_VALUE) {
-					break;
-				}
-				// If the coins in the current position is the same than before
-				// it increment the counter.
-				else if (this.gameBoard[i][j] == playerConnecting) {
-					coinsConnected++;
-				}
-				// Else restart the counter.
-				else {
-					coinsConnected = 1;
-					playerConnecting = this.gameBoard[i][j];
-				}
-				// Check if there are four coins in a row of the same player
-				if (coinsConnected == 4) {
-					return (this.playerID == playerConnecting) ? Winner.PLAYER1
-							: Winner.PLAYER2;
-				}
+		int playerConnecting = Integer.MIN_VALUE;
+		int coinsConnected = 1;
+		for (int i = Math.max(0, this.lastX - 3); i < this.x
+				&& i <= (this.lastX + 3); i++) {
+			// If the coins in the current position is the same than before
+			// it increment the counter.
+			if (this.gameBoard[i][this.lastY] == playerConnecting) {
+				coinsConnected++;
+			}
+			// Else restart the counter.
+			else {
+				coinsConnected = 1;
+				playerConnecting = this.gameBoard[i][this.lastY];
+			}
+			// Check if there are four coins in a row of the same player
+			if (coinsConnected == 4) {
+				return (this.playerID == playerConnecting) ? Winner.PLAYER1
+						: Winner.PLAYER2;
 			}
 		}
 		return Winner.NOT_FINISHED;
 	}
 
+	/**
+	 * Check if there are four coins connected in cross.
+	 * 
+	 * @return Winner.NOT_FINISHED if there aren't four coins in a row in cross
+	 *         or the number of the player who has won if any.
+	 */
+	private Winner checkCrossPositions() {
+		// Initialize the vars
+		int playerConnecting = Integer.MIN_VALUE;
+		int coinsConnected = 1;
+		// This var contains the value to calculate where to start to search for
+		// 4 in a row
+		int border = Math.min(this.lastX, this.lastY) % 4;
+		// In this loop check the rows
+		for (int i = Math.max(0, this.lastX - border), j = Math.max(0,
+				this.lastY - border); i < Math.min(this.lastX + 4, this.x)
+				&& j < Math.min(this.lastY + 4, this.y); i++, j++) {
+			// If it is empty or different from the coin before
+			if (this.gameBoard[i][j] == Integer.MIN_VALUE
+					| this.gameBoard[i][j] != playerConnecting) {
+				coinsConnected = 1;
+				playerConnecting = this.gameBoard[i][j];
+			}
+			// If the coins in the current position is the same than
+			// before it increments the counter.
+			else {
+				coinsConnected++;
+			}
+			// Check if there are four coins in a row of the same player
+			if (coinsConnected == 4) {
+				return (this.playerID == playerConnecting) ? Winner.PLAYER1
+						: Winner.PLAYER2;
+			}
+		}
+		playerConnecting = Integer.MIN_VALUE;
+		coinsConnected = 1;
+
+		for (int i = Math.max(0, this.lastX - border), j = Math.min(this.y - 1,
+				this.lastY + border); i < Math.min(this.lastX + 4, this.x)
+				&& j >= Math.max(this.lastY - 3, 0); i++, j--) {
+			// If it is empty or different from the coin before
+			if (this.gameBoard[i][j] == Integer.MIN_VALUE
+					| this.gameBoard[i][j] != playerConnecting) {
+				coinsConnected = 1;
+				playerConnecting = this.gameBoard[i][j];
+			}
+			// If the coins in the current position is the same than
+			// before it increments the counter.
+			else {
+				coinsConnected++;
+			}
+			// Check if there are four coins in a row of the same player
+			if (coinsConnected == 4) {
+				return (this.playerID == playerConnecting) ? Winner.PLAYER1
+						: Winner.PLAYER2;
+			}
+		}
+		return Winner.NOT_FINISHED;
+	}
 }
