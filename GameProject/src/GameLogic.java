@@ -23,9 +23,9 @@ public class GameLogic implements IGameLogic {
 
 	public Winner gameFinished() {
 		Winner result = Winner.NOT_FINISHED;
-		if ((result = this.checkTie()) == Winner.TIE) {
-		} else if ((result = this.checkVerticalPositions()) != Winner.NOT_FINISHED) {
+		if ((result = this.checkVerticalPositions()) != Winner.NOT_FINISHED) {
 		} else if ((result = this.checkHorizontalPositions()) != Winner.NOT_FINISHED) {
+		} else if ((result = this.checkTie()) == Winner.TIE) {
 		}
 		return result;
 	}
