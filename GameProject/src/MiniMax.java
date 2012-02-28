@@ -33,9 +33,20 @@ public class MiniMax{
 	}
 
 	public int miniMax(int[][] gameboard){
-		
-		int v = maxDecision(gameboard,Integer.MIN_VALUE,Integer.MAX_VALUE);
-		return v;
+		int v=Integer.MIN_VALUE;
+		int v1=0;
+		int b=0;
+		for (int a : actions(gameboard)) {
+			v = Math.max(v, minDecision(result(gameboard, a), Integer.MIN_VALUE,Integer.MAX_VALUE));
+			
+			if(v>v1)
+				b=a;
+			v1=v;
+			//alpha = Math.max(alpha, v);
+			
+		}
+		//int v = maxDecision(gameboard,Integer.MIN_VALUE,Integer.MAX_VALUE);
+		return b;
 	}
 	
 	private int maxDecision(int[][] gameboard, int alpha, int beta){
@@ -99,25 +110,25 @@ public class MiniMax{
 
 		return copy_gameboard;
 	}
-
+	//Michele:: correct the bug where the playerID was 1 instead of 2
 	public int Utility(int[][] gameBoard, IGameLogic.Winner player) {
 		IGameLogic.Winner result;
 		if (this.checkTie(gameBoard) == IGameLogic.Winner.TIE) {
 			return 0;
 		} else if ((result = this.checkCrossPositions(gameBoard, player)) != IGameLogic.Winner.NOT_FINISHED) {
-			if (result == IGameLogic.Winner.PLAYER1 && this.playerID == 1) {
+			if (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2) {
 				return 1;
 			} else {
 				return -1;
 			}
 		} else if ((result = this.checkHorizontalPositions(gameBoard, player)) != IGameLogic.Winner.NOT_FINISHED) {
-			if (result == IGameLogic.Winner.PLAYER1 && this.playerID == 1) {
+			if (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2) {
 				return 1;
 			} else {
 				return -1;
 			}
 		} else if ((result = this.checkVerticalPositions(gameBoard, player)) != IGameLogic.Winner.NOT_FINISHED) {
-			if (result == IGameLogic.Winner.PLAYER1 && this.playerID == 1) {
+			if (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2) {
 				return 1;
 			} else {
 				return -1;
