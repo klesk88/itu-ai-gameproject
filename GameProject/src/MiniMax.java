@@ -17,19 +17,6 @@ public class MiniMax{
 		this.playerID = playerID;
 	}
 	
-	private class Values{
-		
-		int coloumns=0;
-		int rows=0;
-		
-		protected Values(int x, int y){
-			
-			coloumns=x;
-			rows=y;
-		}
-	}
-	
-	
 	
 	private boolean terminalState(int[][]gameboard){
 	
