@@ -6,7 +6,7 @@ public class MiniMax{
 	private int x = 0;//coloumns
 	private int y = 0;//raws
 	private int playerID=0;	
-	private LinkedList <Integer> list_of_action = new LinkedList<Integer>();
+	
 	
 	public MiniMax(int x, int y, int playerID){
 		
@@ -15,23 +15,9 @@ public class MiniMax{
 		this.playerID = playerID;
 	}
 
-	private class Values {
+	
 
-		int coloumns = 0;
-		int rows = 0;
-
-		protected Values(int x, int y) {
-
-			coloumns = x;
-			rows = y;
-		}
-	}
-
-	private boolean terminalState(int[][] gameboard) {
-
-		return false;
-	}
-
+	
 	private LinkedList<Integer> actions(int[][]gameboard){		
 		LinkedList <Integer> list_of_action = new LinkedList<Integer>();
 		
@@ -54,14 +40,14 @@ public class MiniMax{
 	
 	private int maxDecision(int[][] gameboard, int alpha, int beta){
 		
-		if(terminalState(gameboard)){
+		if(TerminalState(gameboard)){
 			
-			//return Utility(state,player(state));
+			return Utility(gameboard,IGameLogic.Winner.PLAYER2);
 		}
 		// assign the min value of the integers to this variable
 		int v = Integer.MIN_VALUE;
-		actions(gameboard);
-		for (int a : list_of_action) {
+		//actions(gameboard);
+		for (int a : actions(gameboard)) {
 
 			v = Math.max(v, minDecision(result(gameboard, a), alpha, beta));
 			if (v >= beta) {
@@ -76,14 +62,14 @@ public class MiniMax{
 	
 	private int minDecision(int[][] gameboard, int alpha, int beta){
 		
-		if(terminalState(gameboard)){
+		if(TerminalState(gameboard)){
 			
-			//return Utility(state,player(state));
+			return Utility(gameboard,IGameLogic.Winner.PLAYER2);
 		}
 		// assign the min value of the integers to this variable
 		int v = Integer.MAX_VALUE;
-		actions(gameboard);
-		for (int a : list_of_action) {
+		//actions(gameboard);
+		for (int a : actions(gameboard)) {
 
 			v = Math.min(v, maxDecision(result(gameboard, a), alpha, beta));
 			if (v <= alpha) {
@@ -98,11 +84,12 @@ public class MiniMax{
 
 	private int[][] result(int[][] gameboard, int a) {
 		int[][] copy_gameboard = new int[x][y];
+		int d=0;
 		for (int i = 0; i < x; i++) {
 			for (int j = 0; j < y; j++) {
 				// if i'm in the position point by the action i update the table
-				if (i == a && gameboard[i][j] == Integer.MIN_VALUE) {
-
+				if (i == a && gameboard[i][j] == Integer.MIN_VALUE && d==0) {
+					d++;
 					copy_gameboard[i][j] = playerID;
 				} else {// if not i copy the data
 					copy_gameboard[i][j] = gameboard[i][j];
@@ -139,9 +126,9 @@ public class MiniMax{
 		return 0;
 	}
 
-	public boolean TerminalState(int[][] gameBoard) {
+	private boolean TerminalState(int[][] gameBoard) {
 		IGameLogic.Winner result;
-		IGameLogic.Winner player = IGameLogic.Winner.PLAYER1;
+		IGameLogic.Winner player = IGameLogic.Winner.PLAYER2;
 		if (this.checkTie(gameBoard) == IGameLogic.Winner.TIE) {
 			return true;
 		} else if ((result = this.checkCrossPositions(gameBoard, player)) != IGameLogic.Winner.NOT_FINISHED) {
