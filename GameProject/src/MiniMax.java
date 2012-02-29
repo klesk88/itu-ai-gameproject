@@ -1,66 +1,78 @@
-import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
-public class MiniMax{
-	
-	private int x = 0;//coloumns
-	private int y = 0;//raws
-	private int playerID=0;	
-	
-	
-	public MiniMax(int x, int y, int playerID){
-		
+public class MiniMax {
+
+	private int x = 0;// columns
+	private int y = 0;// raws
+	private int playerID = 0;
+
+	public MiniMax(int x, int y, int playerID) {
+
 		this.x = x;
 		this.y = y;
 		this.playerID = playerID;
 	}
 
-	
+	private class Action {
+		int column;
+		int player;
 
-	
-	private LinkedList<Integer> actions(int[][]gameboard){		
-		LinkedList <Integer> list_of_action = new LinkedList<Integer>();
-		
-		for (int i=0; i<x; i++ ){				
-					//if there isn't no one in that poisition i put a coin inside that and i change coloumn
-					if(gameboard[i][y-1]==Integer.MIN_VALUE){
-						//copy_gameboard[i][j] = playerID; // result
-						//list_of_action.add(i);//add the coloumn to the list
-						list_of_action.add(i);					
-					}
-		}	
-		return list_of_action;// i don't never have to came here 
+		public Action(int ncolumn, int nplayer) {
+			this.column = ncolumn;
+			this.player = nplayer;
+		}
 	}
 
-	public int miniMax(int[][] gameboard){
-		int v=Integer.MIN_VALUE;
-		int v1=0;
-		int b=0;
-		for (int a : actions(gameboard)) {
-			v = Math.max(v, minDecision(result(gameboard, a), Integer.MIN_VALUE,Integer.MAX_VALUE));
-			
-			if(v>v1)
-				b=a;
-			v1=v;
-			//alpha = Math.max(alpha, v);
-			
+	private List<Action> actions(int[][] gameboard, int player) {
+		List<Action> list_of_action = new LinkedList<Action>();
+
+		for (int j = 0; j < y; j++) {
+			// if there isn't no one in that position i put a coin inside that
+			// and i change column
+			if (gameboard[x - 1][j] == Integer.MIN_VALUE) {
+				// copy_gameboard[i][j] = playerID; // result
+				// list_of_action.add(i);//add the column to the list
+				list_of_action.add(new Action(j, player));
+			}
 		}
-		//int v = maxDecision(gameboard,Integer.MIN_VALUE,Integer.MAX_VALUE);
+		return list_of_action;// i don't never have to came here
+	}
+
+	public int miniMax(int[][] gameboard) {
+		long start = System.currentTimeMillis();
+		int v = Integer.MIN_VALUE;
+		int v1 = Integer.MIN_VALUE;
+		int b = 0;
+		for (Action action : actions(gameboard, this.playerID)) {
+			v = Math.max(
+					v,
+					minDecision(result(gameboard, action), Integer.MIN_VALUE,
+							Integer.MAX_VALUE));
+
+			if (v > v1) {
+				b = action.column;
+				v1 = v;
+			}
+			// alpha = Math.max(alpha, v);
+
+		}
+		System.out.println("Time: "
+				+ Long.toString(System.currentTimeMillis() - start));
+		// int v = maxDecision(gameboard,Integer.MIN_VALUE,Integer.MAX_VALUE);
 		return b;
 	}
-	
-	private int maxDecision(int[][] gameboard, int alpha, int beta){
-		
-		if(TerminalState(gameboard)){
-			
-			return Utility(gameboard,IGameLogic.Winner.PLAYER2);
+
+	private int maxDecision(int[][] gameboard, int alpha, int beta) {
+		if (TerminalState(gameboard)) {
+			return Utility(gameboard, playerID == 1 ? IGameLogic.Winner.PLAYER1
+					: IGameLogic.Winner.PLAYER2);
 		}
 		// assign the min value of the integers to this variable
 		int v = Integer.MIN_VALUE;
-		//actions(gameboard);
-		for (int a : actions(gameboard)) {
+		for (Action action : actions(gameboard, this.playerID)) {
 
-			v = Math.max(v, minDecision(result(gameboard, a), alpha, beta));
+			v = Math.max(v, minDecision(result(gameboard, action), alpha, beta));
 			if (v >= beta) {
 				return v;
 			}
@@ -70,19 +82,17 @@ public class MiniMax{
 
 		return v;
 	}
-	
-	private int minDecision(int[][] gameboard, int alpha, int beta){
-		
-		if(TerminalState(gameboard)){
-			
-			return Utility(gameboard,IGameLogic.Winner.PLAYER2);
+
+	private int minDecision(int[][] gameboard, int alpha, int beta) {
+		if (TerminalState(gameboard)) {
+			return Utility(gameboard, playerID == 1 ? IGameLogic.Winner.PLAYER1
+					: IGameLogic.Winner.PLAYER2);
 		}
 		// assign the min value of the integers to this variable
 		int v = Integer.MAX_VALUE;
-		//actions(gameboard);
-		for (int a : actions(gameboard)) {
+		for (Action action : actions(gameboard, this.playerID % 2 + 1)) {
 
-			v = Math.min(v, maxDecision(result(gameboard, a), alpha, beta));
+			v = Math.min(v, maxDecision(result(gameboard, action), alpha, beta));
 			if (v <= alpha) {
 				return v;
 			}
@@ -93,42 +103,45 @@ public class MiniMax{
 		return v;
 	}
 
-	private int[][] result(int[][] gameboard, int a) {
+	private int[][] result(int[][] gameboard, Action action) {
 		int[][] copy_gameboard = new int[x][y];
-		int d=0;
 		for (int i = 0; i < x; i++) {
 			for (int j = 0; j < y; j++) {
-				// if i'm in the position point by the action i update the table
-				if (i == a && gameboard[i][j] == Integer.MIN_VALUE && d==0) {
-					d++;
-					copy_gameboard[i][j] = playerID;
-				} else {// if not i copy the data
-					copy_gameboard[i][j] = gameboard[i][j];
-				}
+				copy_gameboard[i][j] = gameboard[i][j];
+			}
+		}
+
+		for (int i = 0; i < this.x; i++) {
+			if (gameboard[i][action.column] == Integer.MIN_VALUE) {
+				copy_gameboard[i][action.column] = action.player;
+				break;
 			}
 		}
 
 		return copy_gameboard;
 	}
-	//Michele:: correct the bug where the playerID was 1 instead of 2
+
 	public int Utility(int[][] gameBoard, IGameLogic.Winner player) {
 		IGameLogic.Winner result;
 		if (this.checkTie(gameBoard) == IGameLogic.Winner.TIE) {
 			return 0;
 		} else if ((result = this.checkCrossPositions(gameBoard, player)) != IGameLogic.Winner.NOT_FINISHED) {
-			if (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2) {
+			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
+					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
 				return 1;
 			} else {
 				return -1;
 			}
 		} else if ((result = this.checkHorizontalPositions(gameBoard, player)) != IGameLogic.Winner.NOT_FINISHED) {
-			if (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2) {
+			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
+					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
 				return 1;
 			} else {
 				return -1;
 			}
 		} else if ((result = this.checkVerticalPositions(gameBoard, player)) != IGameLogic.Winner.NOT_FINISHED) {
-			if (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2) {
+			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
+					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
 				return 1;
 			} else {
 				return -1;
@@ -137,16 +150,16 @@ public class MiniMax{
 		return 0;
 	}
 
-	private boolean TerminalState(int[][] gameBoard) {
-		IGameLogic.Winner result;
-		IGameLogic.Winner player = IGameLogic.Winner.PLAYER2;
+	public boolean TerminalState(int[][] gameBoard) {
+		IGameLogic.Winner player = this.playerID == 1 ? IGameLogic.Winner.PLAYER1
+				: IGameLogic.Winner.PLAYER2;
 		if (this.checkTie(gameBoard) == IGameLogic.Winner.TIE) {
 			return true;
-		} else if ((result = this.checkCrossPositions(gameBoard, player)) != IGameLogic.Winner.NOT_FINISHED) {
+		} else if (this.checkCrossPositions(gameBoard, player) != IGameLogic.Winner.NOT_FINISHED) {
 			return true;
-		} else if ((result = this.checkHorizontalPositions(gameBoard, player)) != IGameLogic.Winner.NOT_FINISHED) {
+		} else if (this.checkHorizontalPositions(gameBoard, player) != IGameLogic.Winner.NOT_FINISHED) {
 			return true;
-		} else if ((result = this.checkVerticalPositions(gameBoard, player)) != IGameLogic.Winner.NOT_FINISHED) {
+		} else if (this.checkVerticalPositions(gameBoard, player) != IGameLogic.Winner.NOT_FINISHED) {
 			return true;
 		}
 		return false;
@@ -160,8 +173,8 @@ public class MiniMax{
 	 */
 	private IGameLogic.Winner checkTie(int[][] gameBoard) {
 		// Check the top position of every column
-		for (int i = 0; i < this.x; i++) {
-			if (gameBoard[i][this.y - 1] == Integer.MIN_VALUE) {
+		for (int j = 0; j < this.y; j++) {
+			if (gameBoard[this.x - 1][j] == Integer.MIN_VALUE) {
 				return IGameLogic.Winner.NOT_FINISHED;
 			}
 		}
@@ -194,7 +207,8 @@ public class MiniMax{
 				}
 				// Check if there are four coins in a row of the same player
 				if (coinsConnected == 4) {
-					return player;
+					return playerConnecting == 1 ? IGameLogic.Winner.PLAYER1
+							: IGameLogic.Winner.PLAYER2;
 				}
 			}
 		}
@@ -228,7 +242,8 @@ public class MiniMax{
 				}
 				// Check if there are four coins in a row of the same player
 				if (coinsConnected == 4) {
-					return player;
+					return playerConnecting == 1 ? IGameLogic.Winner.PLAYER1
+							: IGameLogic.Winner.PLAYER2;
 				}
 			}
 		}
@@ -263,7 +278,8 @@ public class MiniMax{
 					}
 					// Check if there are four coins in a row of the same player
 					if (coinsConnected == 4) {
-						return player;
+						return playerConnecting == 1 ? IGameLogic.Winner.PLAYER1
+								: IGameLogic.Winner.PLAYER2;
 					}
 				}
 			}
@@ -288,7 +304,8 @@ public class MiniMax{
 					}
 					// Check if there are four coins in a row of the same player
 					if (coinsConnected == 4) {
-						return player;
+						return playerConnecting == 1 ? IGameLogic.Winner.PLAYER1
+								: IGameLogic.Winner.PLAYER2;
 					}
 				}
 			}

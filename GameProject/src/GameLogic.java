@@ -8,7 +8,7 @@ public class GameLogic implements IGameLogic {
 	/** This contains the last y coordinate where a coins where put. */
 	private int lastY;
 	private MiniMax mini_max;
-	
+
 	public GameLogic() {
 		// TODO Write your implementation for this method
 	}
@@ -17,7 +17,7 @@ public class GameLogic implements IGameLogic {
 		this.x = x;
 		this.y = y;
 		this.playerID = playerID;
-		mini_max = new MiniMax(x,y,playerID);
+		mini_max = new MiniMax(x, y, playerID);
 		this.lastX = Integer.MIN_VALUE;
 		this.lastY = Integer.MIN_VALUE;
 		this.gameBoard = new int[x][y];
@@ -30,45 +30,39 @@ public class GameLogic implements IGameLogic {
 
 	public Winner gameFinished() {
 		Winner result = Winner.NOT_FINISHED;
-		long start = System.nanoTime();
 		if ((result = this.checkVerticalPositions()) != Winner.NOT_FINISHED) {
 		} else if ((result = this.checkHorizontalPositions()) != Winner.NOT_FINISHED) {
 		} else if ((result = this.checkCrossPositions()) != Winner.NOT_FINISHED) {
 		} else if ((result = this.checkTie()) == Winner.TIE) {
 		}
-		System.out.println("Time: " + Long.toString(System.nanoTime() - start));
 		return result;
 	}
 
 	public void insertCoin(int column, int playerID) {
-		for (int i = 0; i < this.y; i++) {
+		for (int i = 0; i < this.x; i++) {
 			// If the position is already busy continue to the next
-			if (this.gameBoard[column][i] != Integer.MIN_VALUE) {
+			if (this.gameBoard[i][column] != Integer.MIN_VALUE) {
 				continue;
 			}
 			// If the position is free it stores the new coin and finishes the
 			// method
-			this.gameBoard[column][i] = playerID;
-			this.lastX = column;
-			this.lastY = i;
+			this.gameBoard[i][column] = playerID;
+			this.lastX = i;
+			this.lastY = column;
 			break;
 		}
 	}
 
 	public int decideNextMove() {
-		
-		/*for (int i = 0; i < this.x; i++) {
-			for (int j = 0; j < this.y; j++) {
-				// If the position is already occupated continue to the next
-				if (this.gameBoard[i][j] != Integer.MIN_VALUE) {
-					continue;
-				}
-				return i;
-			}
-		}
-		return 0;*/
+
+		/*
+		 * for (int i = 0; i < this.x; i++) { for (int j = 0; j < this.y; j++) {
+		 * // If the position is already occupated continue to the next if
+		 * (this.gameBoard[i][j] != Integer.MIN_VALUE) { continue; } return i; }
+		 * } return 0;
+		 */
 		return mini_max.miniMax(gameBoard);
-		
+
 	}
 
 	/**
@@ -79,8 +73,8 @@ public class GameLogic implements IGameLogic {
 	 */
 	private Winner checkTie() {
 		// Check the top position of every column
-		for (int i = 0; i < this.x; i++) {
-			if (this.gameBoard[i][this.y - 1] == Integer.MIN_VALUE) {
+		for (int j = 0; j < this.y; j++) {
+			if (this.gameBoard[this.x - 1][j] == Integer.MIN_VALUE) {
 				return Winner.NOT_FINISHED;
 			}
 		}
@@ -112,7 +106,8 @@ public class GameLogic implements IGameLogic {
 			}
 			// Check if there are four coins in a row of the same player
 			if (coinsConnected == 4) {
-				return (this.playerID == 1) ? Winner.PLAYER1 : Winner.PLAYER2;
+				return (playerConnecting == 1) ? Winner.PLAYER1
+						: Winner.PLAYER2;
 			}
 		}
 		return Winner.NOT_FINISHED;
@@ -144,7 +139,7 @@ public class GameLogic implements IGameLogic {
 			}
 			// Check if there are four coins in a row of the same player
 			if (coinsConnected == 4) {
-				return (this.playerID == playerConnecting) ? Winner.PLAYER1
+				return (playerConnecting == 1) ? Winner.PLAYER1
 						: Winner.PLAYER2;
 			}
 		}
@@ -181,7 +176,7 @@ public class GameLogic implements IGameLogic {
 			}
 			// Check if there are four coins in a row of the same player
 			if (coinsConnected == 4) {
-				return (this.playerID == playerConnecting) ? Winner.PLAYER1
+				return (playerConnecting == 1) ? Winner.PLAYER1
 						: Winner.PLAYER2;
 			}
 		}
@@ -204,7 +199,7 @@ public class GameLogic implements IGameLogic {
 			}
 			// Check if there are four coins in a row of the same player
 			if (coinsConnected == 4) {
-				return (this.playerID == playerConnecting) ? Winner.PLAYER1
+				return (playerConnecting == 1) ? Winner.PLAYER1
 						: Winner.PLAYER2;
 			}
 		}
