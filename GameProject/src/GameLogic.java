@@ -122,8 +122,6 @@ public class GameLogic implements IGameLogic {
 	 *         horizontal or the number of the player who has won if any.
 	 */
 	private Winner checkHorizontalPositions() {
-
-		System.out.println("it is called.");
 		// Check the horizontal positions
 		int playerConnecting = Integer.MIN_VALUE;
 		int coinsConnected = 1;
@@ -186,7 +184,7 @@ public class GameLogic implements IGameLogic {
 		playerConnecting = Integer.MIN_VALUE;
 		coinsConnected = 1;
 
-		border = Math.min(Math.min(this.x - this.lastX, this.lastY), 3);
+		border = Math.min(Math.min((this.x - 1) - this.lastX, this.lastY), 3);
 		for (int i = Math.min(this.x - 1, this.lastX + border), j = Math.max(0,
 				this.lastY - border); i >= Math.max(0, this.lastX - 3)
 				&& j < Math.min(this.lastY + 4, this.y); i--, j++) {

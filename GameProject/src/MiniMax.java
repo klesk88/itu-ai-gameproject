@@ -6,7 +6,8 @@ public class MiniMax {
 	private int x = 0;// columns
 	private int y = 0;// raws
 	private int playerID = 0;
-	private final int maximumDepth = 1;
+	private final int maximumDepth = 2;
+	private long timeCheck = 0;
 
 	public MiniMax(int x, int y, int playerID) {
 
@@ -42,14 +43,17 @@ public class MiniMax {
 
 	public int miniMax(int[][] gameboard) {
 		long start = System.currentTimeMillis();
+		this.timeCheck = 0;
 		double v = Integer.MIN_VALUE;
 		double v1 = Integer.MIN_VALUE;
 		double alpha = Integer.MIN_VALUE;
 		double beta = Integer.MAX_VALUE;
 		int b = 0;
 		for (Action action : actions(gameboard, this.playerID)) {
-			v = Math.max(v,
-					minDecision(result(gameboard, action), alpha, beta, 0));
+			v = Math.max(
+					v,
+					minDecision(result(gameboard, action), alpha, beta, 0,
+							action.column));
 
 			alpha = Math.max(alpha, v);
 			if (v > v1) {
@@ -60,23 +64,26 @@ public class MiniMax {
 		System.out.println("Time: "
 				+ Long.toString(System.currentTimeMillis() - start));
 		// int v = maxDecision(gameboard,Integer.MIN_VALUE,Integer.MAX_VALUE);
+		System.out.println("Time checking: " + this.timeCheck);
+		System.out.println();
 		return b;
 	}
 
 	private double maxDecision(int[][] gameboard, double alpha, double beta,
-			int depth) {
+			int depth, int lastColumn) {
 		depth++;
-		if (cutoff_test(gameboard, depth)) {
+		if (cutoff_test(gameboard, depth, lastColumn)) {
 			return evaluation(gameboard,
 					playerID == 1 ? IGameLogic.Winner.PLAYER1
-							: IGameLogic.Winner.PLAYER2);
+							: IGameLogic.Winner.PLAYER2, lastColumn);
 		}
 		// assign the min value of the integers to this variable
 		double v = Integer.MIN_VALUE;
 		for (Action action : actions(gameboard, this.playerID)) {
-
-			v = Math.max(v,
-					minDecision(result(gameboard, action), alpha, beta, depth));
+			v = Math.max(
+					v,
+					minDecision(result(gameboard, action), alpha, beta, depth,
+							action.column));
 			if (v >= beta) {
 				return v;
 			}
@@ -88,19 +95,21 @@ public class MiniMax {
 	}
 
 	private double minDecision(int[][] gameboard, double alpha, double beta,
-			int depth) {
+			int depth, int lastColumn) {
 		depth++;
-		if (cutoff_test(gameboard, depth)) {
+		if (cutoff_test(gameboard, depth, lastColumn)) {
 			return evaluation(gameboard,
 					playerID == 1 ? IGameLogic.Winner.PLAYER1
-							: IGameLogic.Winner.PLAYER2);
+							: IGameLogic.Winner.PLAYER2, lastColumn);
 		}
 		// assign the min value of the integers to this variable
 		double v = Integer.MAX_VALUE;
 		for (Action action : actions(gameboard, this.playerID % 2 + 1)) {
 
-			v = Math.min(v,
-					maxDecision(result(gameboard, action), alpha, beta, depth));
+			v = Math.min(
+					v,
+					maxDecision(result(gameboard, action), alpha, beta, depth,
+							action.column));
 			if (v <= alpha) {
 				return v;
 			}
@@ -111,27 +120,42 @@ public class MiniMax {
 		return v;
 	}
 
-	private boolean cutoff_test(int[][] gameBoard, int depth) {
+	private boolean cutoff_test(int[][] gameBoard, int depth, int lastColumn) {
 		IGameLogic.Winner player = this.playerID == 1 ? IGameLogic.Winner.PLAYER1
 				: IGameLogic.Winner.PLAYER2;
+		int lastX = 0;
+		for (int i = this.x - 1; i > 0; i--) {
+			if (gameBoard[i][lastColumn] != Integer.MIN_VALUE) {
+				lastX = i;
+				break;
+			}
+		}
+		long start = System.currentTimeMillis();
 		if (this.checkTie(gameBoard) == IGameLogic.Winner.TIE) {
+			this.timeCheck += System.currentTimeMillis() - start;
 			return true;
-		} else if (this.checkCrossPositions(gameBoard, player, 4) != IGameLogic.Winner.NOT_FINISHED) {
+		} else if (this.checkCrossPositions(gameBoard, lastX, lastColumn, 4) != IGameLogic.Winner.NOT_FINISHED) {
+			this.timeCheck += System.currentTimeMillis() - start;
 			return true;
-		} else if (this.checkHorizontalPositions(gameBoard, player, 4) != IGameLogic.Winner.NOT_FINISHED) {
+		} else if (this.checkHorizontalPositions(gameBoard, lastX, lastColumn,
+				4) != IGameLogic.Winner.NOT_FINISHED) {
+			this.timeCheck += System.currentTimeMillis() - start;
 			return true;
-		} else if (this.checkVerticalPositions(gameBoard, player, 4) != IGameLogic.Winner.NOT_FINISHED) {
+		} else if (this.checkVerticalPositions(gameBoard, lastX, lastColumn, 4) != IGameLogic.Winner.NOT_FINISHED) {
+			this.timeCheck += System.currentTimeMillis() - start;
 			return true;
 		} else if (depth > this.maximumDepth) {
+			this.timeCheck += System.currentTimeMillis() - start;
 			return true;
 		}
+		this.timeCheck += System.currentTimeMillis() - start;
 		return false;
 	}
 
 	private int[][] result(int[][] gameboard, Action action) {
-		int[][] copy_gameboard = new int[x][y];
-		for (int i = 0; i < x; i++) {
-			for (int j = 0; j < y; j++) {
+		int[][] copy_gameboard = new int[this.x][this.y];
+		for (int i = 0; i < this.x; i++) {
+			for (int j = 0; j < this.y; j++) {
 				copy_gameboard[i][j] = gameboard[i][j];
 			}
 		}
@@ -146,77 +170,113 @@ public class MiniMax {
 		return copy_gameboard;
 	}
 
-	public double evaluation(int[][] gameBoard, IGameLogic.Winner player) {
+	public double evaluation(int[][] gameBoard, IGameLogic.Winner player,
+			int lastColumn) {
+		long start = System.currentTimeMillis();
 		IGameLogic.Winner result;
-		if (this.checkTie(gameBoard) == IGameLogic.Winner.TIE) {
-			return 0;
-		} else if ((result = this.checkCrossPositions(gameBoard, player, 4)) != IGameLogic.Winner.NOT_FINISHED) {
-			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
-					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
-				return 1;
-			} else {
-				return -1;
-			}
-		} else if ((result = this
-				.checkHorizontalPositions(gameBoard, player, 4)) != IGameLogic.Winner.NOT_FINISHED) {
-			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
-					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
-				return 1;
-			} else {
-				return -1;
-			}
-		} else if ((result = this.checkVerticalPositions(gameBoard, player, 4)) != IGameLogic.Winner.NOT_FINISHED) {
-			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
-					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
-				return 1;
-			} else {
-				return -1;
-			}
-		} else if ((result = this.checkCrossPositions(gameBoard, player, 3)) != IGameLogic.Winner.NOT_FINISHED) {
-			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
-					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
-				return 0.5;
-			} else {
-				return -1;
-			}
-		} else if ((result = this
-				.checkHorizontalPositions(gameBoard, player, 3)) != IGameLogic.Winner.NOT_FINISHED) {
-			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
-					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
-				return 0.5;
-			} else {
-				return -1;
-			}
-		} else if ((result = this.checkVerticalPositions(gameBoard, player, 3)) != IGameLogic.Winner.NOT_FINISHED) {
-			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
-					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
-				return 0.5;
-			} else {
-				return -1;
-			}
-		} else if ((result = this.checkCrossPositions(gameBoard, player, 2)) != IGameLogic.Winner.NOT_FINISHED) {
-			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
-					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
-				return 0.5;
-			} else {
-				return -1;
-			}
-		} else if ((result = this
-				.checkHorizontalPositions(gameBoard, player, 2)) != IGameLogic.Winner.NOT_FINISHED) {
-			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
-					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
-				return 0.5;
-			} else {
-				return -1;
-			}
-		} else if ((result = this.checkVerticalPositions(gameBoard, player, 2)) != IGameLogic.Winner.NOT_FINISHED) {
-			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
-					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
-				return 0.5;
-			} else {
-				return -1;
+		int lastX = 0;
+		for (int i = this.x - 1; i > 0; i--) {
+			if (gameBoard[i][lastColumn] != Integer.MIN_VALUE) {
+				lastX = i;
+				break;
 			}
 		}
+		if (this.checkTie(gameBoard) == IGameLogic.Winner.TIE) {
+			this.timeCheck += System.currentTimeMillis() - start;
+			return 0;
+		} else if ((result = this.checkCrossPositions(gameBoard, lastX,
+				lastColumn, 4)) != IGameLogic.Winner.NOT_FINISHED) {
+			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
+					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
+				this.timeCheck += System.currentTimeMillis() - start;
+				return 1;
+			} else {
+				this.timeCheck += System.currentTimeMillis() - start;
+				return -1;
+			}
+		} else if ((result = this.checkHorizontalPositions(gameBoard, lastX,
+				lastColumn, 4)) != IGameLogic.Winner.NOT_FINISHED) {
+			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
+					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
+				this.timeCheck += System.currentTimeMillis() - start;
+				return 1;
+			} else {
+				this.timeCheck += System.currentTimeMillis() - start;
+				return -1;
+			}
+		} else if ((result = this.checkVerticalPositions(gameBoard, lastX,
+				lastColumn, 4)) != IGameLogic.Winner.NOT_FINISHED) {
+			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
+					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
+				this.timeCheck += System.currentTimeMillis() - start;
+				return 1;
+			} else {
+				this.timeCheck += System.currentTimeMillis() - start;
+				return -1;
+			}
+		} else if ((result = this.checkCrossPositions(gameBoard, lastX,
+				lastColumn, 3)) != IGameLogic.Winner.NOT_FINISHED) {
+			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
+					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
+				this.timeCheck += System.currentTimeMillis() - start;
+				return 0.5;
+			} else {
+				this.timeCheck += System.currentTimeMillis() - start;
+				return -1;
+			}
+		} else if ((result = this.checkHorizontalPositions(gameBoard, lastX,
+				lastColumn, 3)) != IGameLogic.Winner.NOT_FINISHED) {
+			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
+					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
+				this.timeCheck += System.currentTimeMillis() - start;
+				return 0.5;
+			} else {
+				this.timeCheck += System.currentTimeMillis() - start;
+				return -1;
+			}
+		} else if ((result = this.checkVerticalPositions(gameBoard, lastX,
+				lastColumn, 3)) != IGameLogic.Winner.NOT_FINISHED) {
+			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
+					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
+				this.timeCheck += System.currentTimeMillis() - start;
+				return 0.5;
+			} else {
+				this.timeCheck += System.currentTimeMillis() - start;
+				return -1;
+			}
+		} 
+//		else if ((result = this.checkCrossPositions(gameBoard, lastX,
+//				lastColumn, 2)) != IGameLogic.Winner.NOT_FINISHED) {
+//			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
+//					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
+//				this.timeCheck += System.currentTimeMillis() - start;
+//				return 0.5;
+//			} else {
+//				this.timeCheck += System.currentTimeMillis() - start;
+//				return -1;
+//			}
+//		} else if ((result = this.checkHorizontalPositions(gameBoard, lastX,
+//				lastColumn, 2)) != IGameLogic.Winner.NOT_FINISHED) {
+//			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
+//					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
+//				this.timeCheck += System.currentTimeMillis() - start;
+//				return 0.5;
+//			} else {
+//				this.timeCheck += System.currentTimeMillis() - start;
+//				return -1;
+//			}
+//		} else if ((result = this.checkVerticalPositions(gameBoard, lastX,
+//				lastColumn, 2)) != IGameLogic.Winner.NOT_FINISHED) {
+//			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
+//					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
+//				this.timeCheck += System.currentTimeMillis() - start;
+//				return 0.5;
+//			} else {
+//				this.timeCheck += System.currentTimeMillis() - start;
+//				return -1;
+//			}
+//		}
+		this.timeCheck += System.currentTimeMillis() - start;
 		return 0;
 	}
 
@@ -243,28 +303,27 @@ public class MiniMax {
 	 *         vertical or the number of the player who has won if any.
 	 */
 	private IGameLogic.Winner checkVerticalPositions(int[][] gameBoard,
-			IGameLogic.Winner player, int connected) {
+			int lastX, int lastY, int connected) {
 
 		// Check the vertical positions
-		for (int i = 0; i < this.x; i++) {
-			int playerConnecting = Integer.MIN_VALUE;
-			int coinsConnected = 1;
-			for (int j = 0; j < this.y && gameBoard[i][j] != Integer.MIN_VALUE; j++) {
-				// If it is empty or different from the coin before
-				if (gameBoard[i][j] != playerConnecting) {
-					coinsConnected = 1;
-					playerConnecting = gameBoard[i][j];
-				}
-				// If the coins in the current position is the same than before
-				// it increment the counter.
-				else {
-					coinsConnected++;
-				}
-				// Check if there are four coins in a row of the same player
-				if (coinsConnected == connected) {
-					return playerConnecting == 1 ? IGameLogic.Winner.PLAYER1
-							: IGameLogic.Winner.PLAYER2;
-				}
+		int playerConnecting = Integer.MIN_VALUE;
+		int coinsConnected = 1;
+		for (int i = Math.max(0, lastX - 3); i <= lastX; i++) {
+			// If it is empty or different from the coin before
+			if (gameBoard[i][lastY] == Integer.MIN_VALUE
+					| gameBoard[i][lastY] != playerConnecting) {
+				coinsConnected = 1;
+				playerConnecting = gameBoard[i][lastY];
+			}
+			// If the coins in the current position is the same than before
+			// it increment the counter.
+			else {
+				coinsConnected++;
+			}
+			// Check if there are four coins in a row of the same player
+			if (coinsConnected == connected) {
+				return (playerConnecting == 1) ? IGameLogic.Winner.PLAYER1
+						: IGameLogic.Winner.PLAYER2;
 			}
 		}
 		return IGameLogic.Winner.NOT_FINISHED;
@@ -277,29 +336,27 @@ public class MiniMax {
 	 *         horizontal or the number of the player who has won if any.
 	 */
 	private IGameLogic.Winner checkHorizontalPositions(int[][] gameBoard,
-			IGameLogic.Winner player, int connected) {
-
+			int lastX, int lastY, int connected) {
 		// Check the horizontal positions
-		for (int j = 0; j < this.y; j++) {
-			int playerConnecting = Integer.MIN_VALUE;
-			int coinsConnected = 1;
-			for (int i = 0; i < this.x; i++) {
-				// If it is empty or different from the coin before
-				if (gameBoard[i][j] == Integer.MIN_VALUE
-						| gameBoard[i][j] != playerConnecting) {
-					coinsConnected = 1;
-					playerConnecting = gameBoard[i][j];
-				}
-				// If the coins in the current position is the same than before
-				// it increment the counter.
-				else {
-					coinsConnected++;
-				}
-				// Check if there are four coins in a row of the same player
-				if (coinsConnected == connected) {
-					return playerConnecting == 1 ? IGameLogic.Winner.PLAYER1
-							: IGameLogic.Winner.PLAYER2;
-				}
+		int playerConnecting = Integer.MIN_VALUE;
+		int coinsConnected = 1;
+		for (int j = Math.max(0, lastY - 3); j <= Math.min(this.y - 1,
+				lastY + 3); j++) {
+			// If it is empty or different from the coin before
+			if (gameBoard[lastX][j] == Integer.MIN_VALUE
+					| gameBoard[lastX][j] != playerConnecting) {
+				coinsConnected = 1;
+				playerConnecting = gameBoard[lastX][j];
+			}
+			// If the coins in the current position is the same than before
+			// it increment the counter.
+			else {
+				coinsConnected++;
+			}
+			// Check if there are four coins in a row of the same player
+			if (coinsConnected == connected) {
+				return (playerConnecting == 1) ? IGameLogic.Winner.PLAYER1
+						: IGameLogic.Winner.PLAYER2;
 			}
 		}
 		return IGameLogic.Winner.NOT_FINISHED;
@@ -311,58 +368,57 @@ public class MiniMax {
 	 * @return Winner.NOT_FINISHED if there aren't four coins in a row in cross
 	 *         or the number of the player who has won if any.
 	 */
-	private IGameLogic.Winner checkCrossPositions(int[][] gameBoard,
-			IGameLogic.Winner player, int connected) {
-		for (int x = 0; x < this.x; x++) {
-			for (int y = 0; y < this.y; y++) {
-				// Initialize the vars
-				int playerConnecting = Integer.MIN_VALUE;
-				int coinsConnected = 1;
-				// In this loop check the rows
-				for (int i = x, j = y; i < this.x && j < this.y; i++, j++) {
-					// If it is empty or different from the coin before
-					if (gameBoard[i][j] == Integer.MIN_VALUE
-							| gameBoard[i][j] != playerConnecting) {
-						coinsConnected = 1;
-						playerConnecting = gameBoard[i][j];
-					}
-					// If the coins in the current position is the same than
-					// before it increments the counter.
-					else {
-						coinsConnected++;
-					}
-					// Check if there are four coins in a row of the same player
-					if (coinsConnected == connected) {
-						return playerConnecting == 1 ? IGameLogic.Winner.PLAYER1
-								: IGameLogic.Winner.PLAYER2;
-					}
-				}
+	private IGameLogic.Winner checkCrossPositions(int[][] gameBoard, int lastX,
+			int lastY, int connected) {
+		// Initialize the vars
+		int playerConnecting = Integer.MIN_VALUE;
+		int coinsConnected = 1;
+		// This var contains the value to calculate where to start to search for
+		// 4 in a row
+		int border = Math.min(Math.min(lastX, lastY), 3);
+		// In this loop check the rows
+		for (int i = Math.max(0, lastX - border), j = Math.max(0, lastY
+				- border); i < Math.min(lastX + 4, this.x)
+				&& j < Math.min(lastY + 4, this.y); i++, j++) {
+			// If it is empty or different from the coin before
+			if (gameBoard[i][j] == Integer.MIN_VALUE
+					| gameBoard[i][j] != playerConnecting) {
+				coinsConnected = 1;
+				playerConnecting = gameBoard[i][j];
+			}
+			// If the coins in the current position is the same than
+			// before it increments the counter.
+			else {
+				coinsConnected++;
+			}
+			// Check if there are four coins in a row of the same player
+			if (coinsConnected == connected) {
+				return (playerConnecting == 1) ? IGameLogic.Winner.PLAYER1
+						: IGameLogic.Winner.PLAYER2;
 			}
 		}
-		for (int x = 0; x < this.x; x++) {
-			for (int y = 0; y < this.y; y++) {
-				// Initialize the vars
-				int playerConnecting = Integer.MIN_VALUE;
-				int coinsConnected = 1;
-				// In this loop check the rows
-				for (int i = x, j = this.y - 1; i < this.x && j >= 0; i++, j--) {
-					// If it is empty or different from the coin before
-					if (gameBoard[i][j] == Integer.MIN_VALUE
-							| gameBoard[i][j] != playerConnecting) {
-						coinsConnected = 1;
-						playerConnecting = gameBoard[i][j];
-					}
-					// If the coins in the current position is the same than
-					// before it increments the counter.
-					else {
-						coinsConnected++;
-					}
-					// Check if there are four coins in a row of the same player
-					if (coinsConnected == connected) {
-						return playerConnecting == 1 ? IGameLogic.Winner.PLAYER1
-								: IGameLogic.Winner.PLAYER2;
-					}
-				}
+		playerConnecting = Integer.MIN_VALUE;
+		coinsConnected = 1;
+
+		border = Math.min(Math.min(this.x - lastX, lastY), 3);
+		for (int i = Math.min(this.x - 1, lastX + border), j = Math.max(0,
+				lastY - border); i >= Math.max(0, lastX - 3)
+				&& j < Math.min(lastY + 4, this.y); i--, j++) {
+			// If it is empty or different from the coin before
+			if (gameBoard[i][j] == Integer.MIN_VALUE
+					| gameBoard[i][j] != playerConnecting) {
+				coinsConnected = 1;
+				playerConnecting = gameBoard[i][j];
+			}
+			// If the coins in the current position is the same than
+			// before it increments the counter.
+			else {
+				coinsConnected++;
+			}
+			// Check if there are four coins in a row of the same player
+			if (coinsConnected == connected) {
+				return (playerConnecting == 1) ? IGameLogic.Winner.PLAYER1
+						: IGameLogic.Winner.PLAYER2;
 			}
 		}
 		return IGameLogic.Winner.NOT_FINISHED;
