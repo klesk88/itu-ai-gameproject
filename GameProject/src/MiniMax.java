@@ -41,20 +41,28 @@ public class MiniMax {
 
 	public int miniMax(int[][] gameboard) {
 		long start = System.currentTimeMillis();
-		int v=0;
-		
-		v = maxDecision(gameboard, Integer.MIN_VALUE,Integer.MAX_VALUE);
+		int v = Integer.MIN_VALUE;
+		int v1 = Integer.MIN_VALUE;
+		int alpha = Integer.MIN_VALUE;
+		int beta = Integer.MAX_VALUE;
+		int b = 0;
+		for (Action action : actions(gameboard, this.playerID)) {
+			v = Math.max(
+					v,
+					minDecision(result(gameboard, action), alpha,
+							beta));
 
-			
-	
-			
-			// alpha = Math.max(alpha, v);
+			alpha = Math.max(alpha, v);
+			if (v > v1) {
+				b = action.column;
+				v1 = v;
+			}
 
-	
+		}
 		System.out.println("Time: "
 				+ Long.toString(System.currentTimeMillis() - start));
 		// int v = maxDecision(gameboard,Integer.MIN_VALUE,Integer.MAX_VALUE);
-		return v;
+		return b;
 	}
 
 	private int maxDecision(int[][] gameboard, int alpha, int beta) {
