@@ -6,6 +6,7 @@ public class MiniMax {
 	private int x = 0;// columns
 	private int y = 0;// raws
 	private int playerID = 0;
+	private final int maximumDepth = 1;
 
 	public MiniMax(int x, int y, int playerID) {
 
@@ -41,23 +42,20 @@ public class MiniMax {
 
 	public int miniMax(int[][] gameboard) {
 		long start = System.currentTimeMillis();
-		int v = Integer.MIN_VALUE;
-		int v1 = Integer.MIN_VALUE;
-		int alpha = Integer.MIN_VALUE;
-		int beta = Integer.MAX_VALUE;
+		double v = Integer.MIN_VALUE;
+		double v1 = Integer.MIN_VALUE;
+		double alpha = Integer.MIN_VALUE;
+		double beta = Integer.MAX_VALUE;
 		int b = 0;
 		for (Action action : actions(gameboard, this.playerID)) {
-			v = Math.max(
-					v,
-					minDecision(result(gameboard, action), alpha,
-							beta));
+			v = Math.max(v,
+					minDecision(result(gameboard, action), alpha, beta, 0));
 
 			alpha = Math.max(alpha, v);
 			if (v > v1) {
 				b = action.column;
 				v1 = v;
 			}
-
 		}
 		System.out.println("Time: "
 				+ Long.toString(System.currentTimeMillis() - start));
@@ -65,16 +63,20 @@ public class MiniMax {
 		return b;
 	}
 
-	private int maxDecision(int[][] gameboard, int alpha, int beta) {
-		if (TerminalState(gameboard)) {
-			return Utility(gameboard, playerID == 1 ? IGameLogic.Winner.PLAYER1
-					: IGameLogic.Winner.PLAYER2);
+	private double maxDecision(int[][] gameboard, double alpha, double beta,
+			int depth) {
+		depth++;
+		if (cutoff_test(gameboard, depth)) {
+			return evaluation(gameboard,
+					playerID == 1 ? IGameLogic.Winner.PLAYER1
+							: IGameLogic.Winner.PLAYER2);
 		}
 		// assign the min value of the integers to this variable
-		int v = Integer.MIN_VALUE;
+		double v = Integer.MIN_VALUE;
 		for (Action action : actions(gameboard, this.playerID)) {
 
-			v = Math.max(v, minDecision(result(gameboard, action), alpha, beta));
+			v = Math.max(v,
+					minDecision(result(gameboard, action), alpha, beta, depth));
 			if (v >= beta) {
 				return v;
 			}
@@ -85,16 +87,20 @@ public class MiniMax {
 		return v;
 	}
 
-	private int minDecision(int[][] gameboard, int alpha, int beta) {
-		if (TerminalState(gameboard)) {
-			return Utility(gameboard, playerID == 1 ? IGameLogic.Winner.PLAYER1
-					: IGameLogic.Winner.PLAYER2);
+	private double minDecision(int[][] gameboard, double alpha, double beta,
+			int depth) {
+		depth++;
+		if (cutoff_test(gameboard, depth)) {
+			return evaluation(gameboard,
+					playerID == 1 ? IGameLogic.Winner.PLAYER1
+							: IGameLogic.Winner.PLAYER2);
 		}
 		// assign the min value of the integers to this variable
-		int v = Integer.MAX_VALUE;
+		double v = Integer.MAX_VALUE;
 		for (Action action : actions(gameboard, this.playerID % 2 + 1)) {
 
-			v = Math.min(v, maxDecision(result(gameboard, action), alpha, beta));
+			v = Math.min(v,
+					maxDecision(result(gameboard, action), alpha, beta, depth));
 			if (v <= alpha) {
 				return v;
 			}
@@ -103,6 +109,23 @@ public class MiniMax {
 		}
 
 		return v;
+	}
+
+	private boolean cutoff_test(int[][] gameBoard, int depth) {
+		IGameLogic.Winner player = this.playerID == 1 ? IGameLogic.Winner.PLAYER1
+				: IGameLogic.Winner.PLAYER2;
+		if (this.checkTie(gameBoard) == IGameLogic.Winner.TIE) {
+			return true;
+		} else if (this.checkCrossPositions(gameBoard, player, 4) != IGameLogic.Winner.NOT_FINISHED) {
+			return true;
+		} else if (this.checkHorizontalPositions(gameBoard, player, 4) != IGameLogic.Winner.NOT_FINISHED) {
+			return true;
+		} else if (this.checkVerticalPositions(gameBoard, player, 4) != IGameLogic.Winner.NOT_FINISHED) {
+			return true;
+		} else if (depth > this.maximumDepth) {
+			return true;
+		}
+		return false;
 	}
 
 	private int[][] result(int[][] gameboard, Action action) {
@@ -123,48 +146,78 @@ public class MiniMax {
 		return copy_gameboard;
 	}
 
-	public int Utility(int[][] gameBoard, IGameLogic.Winner player) {
+	public double evaluation(int[][] gameBoard, IGameLogic.Winner player) {
 		IGameLogic.Winner result;
 		if (this.checkTie(gameBoard) == IGameLogic.Winner.TIE) {
 			return 0;
-		} else if ((result = this.checkCrossPositions(gameBoard, player)) != IGameLogic.Winner.NOT_FINISHED) {
+		} else if ((result = this.checkCrossPositions(gameBoard, player, 4)) != IGameLogic.Winner.NOT_FINISHED) {
 			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
 					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
 				return 1;
 			} else {
 				return -1;
 			}
-		} else if ((result = this.checkHorizontalPositions(gameBoard, player)) != IGameLogic.Winner.NOT_FINISHED) {
+		} else if ((result = this
+				.checkHorizontalPositions(gameBoard, player, 4)) != IGameLogic.Winner.NOT_FINISHED) {
 			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
 					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
 				return 1;
 			} else {
 				return -1;
 			}
-		} else if ((result = this.checkVerticalPositions(gameBoard, player)) != IGameLogic.Winner.NOT_FINISHED) {
+		} else if ((result = this.checkVerticalPositions(gameBoard, player, 4)) != IGameLogic.Winner.NOT_FINISHED) {
 			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
 					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
 				return 1;
+			} else {
+				return -1;
+			}
+		} else if ((result = this.checkCrossPositions(gameBoard, player, 3)) != IGameLogic.Winner.NOT_FINISHED) {
+			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
+					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
+				return 0.5;
+			} else {
+				return -1;
+			}
+		} else if ((result = this
+				.checkHorizontalPositions(gameBoard, player, 3)) != IGameLogic.Winner.NOT_FINISHED) {
+			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
+					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
+				return 0.5;
+			} else {
+				return -1;
+			}
+		} else if ((result = this.checkVerticalPositions(gameBoard, player, 3)) != IGameLogic.Winner.NOT_FINISHED) {
+			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
+					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
+				return 0.5;
+			} else {
+				return -1;
+			}
+		} else if ((result = this.checkCrossPositions(gameBoard, player, 2)) != IGameLogic.Winner.NOT_FINISHED) {
+			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
+					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
+				return 0.5;
+			} else {
+				return -1;
+			}
+		} else if ((result = this
+				.checkHorizontalPositions(gameBoard, player, 2)) != IGameLogic.Winner.NOT_FINISHED) {
+			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
+					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
+				return 0.5;
+			} else {
+				return -1;
+			}
+		} else if ((result = this.checkVerticalPositions(gameBoard, player, 2)) != IGameLogic.Winner.NOT_FINISHED) {
+			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
+					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
+				return 0.5;
 			} else {
 				return -1;
 			}
 		}
 		return 0;
-	}
-
-	public boolean TerminalState(int[][] gameBoard) {
-		IGameLogic.Winner player = this.playerID == 1 ? IGameLogic.Winner.PLAYER1
-				: IGameLogic.Winner.PLAYER2;
-		if (this.checkTie(gameBoard) == IGameLogic.Winner.TIE) {
-			return true;
-		} else if (this.checkCrossPositions(gameBoard, player) != IGameLogic.Winner.NOT_FINISHED) {
-			return true;
-		} else if (this.checkHorizontalPositions(gameBoard, player) != IGameLogic.Winner.NOT_FINISHED) {
-			return true;
-		} else if (this.checkVerticalPositions(gameBoard, player) != IGameLogic.Winner.NOT_FINISHED) {
-			return true;
-		}
-		return false;
 	}
 
 	/**
@@ -190,7 +243,7 @@ public class MiniMax {
 	 *         vertical or the number of the player who has won if any.
 	 */
 	private IGameLogic.Winner checkVerticalPositions(int[][] gameBoard,
-			IGameLogic.Winner player) {
+			IGameLogic.Winner player, int connected) {
 
 		// Check the vertical positions
 		for (int i = 0; i < this.x; i++) {
@@ -208,7 +261,7 @@ public class MiniMax {
 					coinsConnected++;
 				}
 				// Check if there are four coins in a row of the same player
-				if (coinsConnected == 4) {
+				if (coinsConnected == connected) {
 					return playerConnecting == 1 ? IGameLogic.Winner.PLAYER1
 							: IGameLogic.Winner.PLAYER2;
 				}
@@ -224,7 +277,7 @@ public class MiniMax {
 	 *         horizontal or the number of the player who has won if any.
 	 */
 	private IGameLogic.Winner checkHorizontalPositions(int[][] gameBoard,
-			IGameLogic.Winner player) {
+			IGameLogic.Winner player, int connected) {
 
 		// Check the horizontal positions
 		for (int j = 0; j < this.y; j++) {
@@ -243,7 +296,7 @@ public class MiniMax {
 					coinsConnected++;
 				}
 				// Check if there are four coins in a row of the same player
-				if (coinsConnected == 4) {
+				if (coinsConnected == connected) {
 					return playerConnecting == 1 ? IGameLogic.Winner.PLAYER1
 							: IGameLogic.Winner.PLAYER2;
 				}
@@ -259,7 +312,7 @@ public class MiniMax {
 	 *         or the number of the player who has won if any.
 	 */
 	private IGameLogic.Winner checkCrossPositions(int[][] gameBoard,
-			IGameLogic.Winner player) {
+			IGameLogic.Winner player, int connected) {
 		for (int x = 0; x < this.x; x++) {
 			for (int y = 0; y < this.y; y++) {
 				// Initialize the vars
@@ -279,7 +332,7 @@ public class MiniMax {
 						coinsConnected++;
 					}
 					// Check if there are four coins in a row of the same player
-					if (coinsConnected == 4) {
+					if (coinsConnected == connected) {
 						return playerConnecting == 1 ? IGameLogic.Winner.PLAYER1
 								: IGameLogic.Winner.PLAYER2;
 					}
@@ -305,7 +358,7 @@ public class MiniMax {
 						coinsConnected++;
 					}
 					// Check if there are four coins in a row of the same player
-					if (coinsConnected == 4) {
+					if (coinsConnected == connected) {
 						return playerConnecting == 1 ? IGameLogic.Winner.PLAYER1
 								: IGameLogic.Winner.PLAYER2;
 					}

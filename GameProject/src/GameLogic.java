@@ -14,13 +14,15 @@ public class GameLogic implements IGameLogic {
 	}
 
 	public void initializeGame(int x, int y, int playerID) {
-		this.x = x;
-		this.y = y;
+		// Rows
+		this.x = y;
+		// Columns
+		this.y = x;
 		this.playerID = playerID;
-		mini_max = new MiniMax(x, y, playerID);
+		mini_max = new MiniMax(this.x, this.y, playerID);
 		this.lastX = Integer.MIN_VALUE;
 		this.lastY = Integer.MIN_VALUE;
-		this.gameBoard = new int[x][y];
+		this.gameBoard = new int[this.x][this.y];
 		for (int i = 0; i < this.x; i++) {
 			for (int j = 0; j < this.y; j++) {
 				this.gameBoard[i][j] = Integer.MIN_VALUE;
@@ -39,7 +41,7 @@ public class GameLogic implements IGameLogic {
 	}
 
 	public void insertCoin(int column, int playerID) {
-		for (int i = 0; i < this.x; i++) {
+		for (int i = 0; i < this.y; i++) {
 			// If the position is already busy continue to the next
 			if (this.gameBoard[i][column] != Integer.MIN_VALUE) {
 				continue;
@@ -92,12 +94,12 @@ public class GameLogic implements IGameLogic {
 		// Check the vertical positions
 		int playerConnecting = Integer.MIN_VALUE;
 		int coinsConnected = 1;
-		for (int j = Math.max(0, this.lastY - 3); j <= this.lastY; j++) {
+		for (int i = Math.max(0, this.lastX - 3); i <= this.lastX; i++) {
 			// If it is empty or different from the coin before
-			if (this.gameBoard[this.lastX][j] == Integer.MIN_VALUE
-					| this.gameBoard[this.lastX][j] != playerConnecting) {
+			if (this.gameBoard[i][this.lastY] == Integer.MIN_VALUE
+					| this.gameBoard[i][this.lastY] != playerConnecting) {
 				coinsConnected = 1;
-				playerConnecting = this.gameBoard[this.lastX][j];
+				playerConnecting = this.gameBoard[i][this.lastY];
 			}
 			// If the coins in the current position is the same than before
 			// it increment the counter.
@@ -121,16 +123,17 @@ public class GameLogic implements IGameLogic {
 	 */
 	private Winner checkHorizontalPositions() {
 
+		System.out.println("it is called.");
 		// Check the horizontal positions
 		int playerConnecting = Integer.MIN_VALUE;
 		int coinsConnected = 1;
-		for (int i = Math.max(0, this.lastX - 3); i <= Math.min(this.x - 1,
-				this.lastX + 3); i++) {
+		for (int j = Math.max(0, this.lastY - 3); j <= Math.min(this.y - 1,
+				this.lastY + 3); j++) {
 			// If it is empty or different from the coin before
-			if (this.gameBoard[i][this.lastY] == Integer.MIN_VALUE
-					| this.gameBoard[i][this.lastY] != playerConnecting) {
+			if (this.gameBoard[this.lastX][j] == Integer.MIN_VALUE
+					| this.gameBoard[this.lastX][j] != playerConnecting) {
 				coinsConnected = 1;
-				playerConnecting = this.gameBoard[i][this.lastY];
+				playerConnecting = this.gameBoard[this.lastX][j];
 			}
 			// If the coins in the current position is the same than before
 			// it increment the counter.
@@ -158,7 +161,7 @@ public class GameLogic implements IGameLogic {
 		int coinsConnected = 1;
 		// This var contains the value to calculate where to start to search for
 		// 4 in a row
-		int border = Math.min(this.lastX, this.lastY) % 4;
+		int border = Math.min(Math.min(this.lastX, this.lastY), 3);
 		// In this loop check the rows
 		for (int i = Math.max(0, this.lastX - border), j = Math.max(0,
 				this.lastY - border); i < Math.min(this.lastX + 4, this.x)
@@ -183,9 +186,10 @@ public class GameLogic implements IGameLogic {
 		playerConnecting = Integer.MIN_VALUE;
 		coinsConnected = 1;
 
-		for (int i = Math.max(0, this.lastX - border), j = Math.min(this.y - 1,
-				this.lastY + border); i < Math.min(this.lastX + 4, this.x)
-				&& j >= Math.max(this.lastY - 3, 0); i++, j--) {
+		border = Math.min(Math.min(this.x - this.lastX, this.lastY), 3);
+		for (int i = Math.min(this.x - 1, this.lastX + border), j = Math.max(0,
+				this.lastY - border); i >= Math.max(0, this.lastX - 3)
+				&& j < Math.min(this.lastY + 4, this.y); i--, j++) {
 			// If it is empty or different from the coin before
 			if (this.gameBoard[i][j] == Integer.MIN_VALUE
 					| this.gameBoard[i][j] != playerConnecting) {
