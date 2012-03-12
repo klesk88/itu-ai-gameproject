@@ -1,3 +1,5 @@
+package connectFour;
+
 public class ConnectedChecking {
 	/**
 	 * Check if the game have finished with a tie.
@@ -5,8 +7,8 @@ public class ConnectedChecking {
 	 * @return Winner.NOT_FINISHED if the game hasn't finished or Winner.TIE if
 	 *         the game has finished and none player has won.
 	 */
-	private IGameLogic.Winner checkTie(final int[][] gameBoard, final int x,
-			final int y) {
+	public static IGameLogic.Winner checkTie(final int[][] gameBoard,
+			final int x, final int y) {
 		// Check the top position of every column
 		for (int j = 0; j < y; j++) {
 			if (gameBoard[x - 1][j] == Integer.MIN_VALUE) {
@@ -22,8 +24,9 @@ public class ConnectedChecking {
 	 * @return Winner.NOT_FINISHED if there aren't four coins in a row in
 	 *         vertical or the number of the player who has won if any.
 	 */
-	private IGameLogic.Winner checkVerticalPositions(final int[][] gameBoard,
-			final int lastX, final int lastY, final int connected) {
+	public static IGameLogic.Winner checkVerticalPositions(
+			final int[][] gameBoard, final int lastX, final int lastY,
+			final int connected) {
 
 		// Check the vertical positions
 		int playerConnecting = Integer.MIN_VALUE;
@@ -55,8 +58,9 @@ public class ConnectedChecking {
 	 * @return Winner.NOT_FINISHED if there aren't four coins in a row in
 	 *         horizontal or the number of the player who has won if any.
 	 */
-	private IGameLogic.Winner checkHorizontalPositions(final int[][] gameBoard,
-			final int lastX, final int lastY, final int connected, final int y) {
+	public static IGameLogic.Winner checkHorizontalPositions(
+			final int[][] gameBoard, final int lastX, final int lastY,
+			final int connected, final int y) {
 		// Check the horizontal positions
 		int playerConnecting = Integer.MIN_VALUE;
 		int coinsConnected = 1;
@@ -97,9 +101,9 @@ public class ConnectedChecking {
 	 * @return Winner.NOT_FINISHED if there aren't four coins in a row in cross
 	 *         or the number of the player who has won if any.
 	 */
-	private IGameLogic.Winner checkCrossPositions(final int[][] gameBoard,
-			final int lastX, final int lastY, final int connected, final int x,
-			final int y) {
+	public static IGameLogic.Winner checkCrossPositions(
+			final int[][] gameBoard, final int lastX, final int lastY,
+			final int connected, final int x, final int y) {
 		// Initialize the vars
 		int playerConnecting = Integer.MIN_VALUE;
 		int coinsConnected = 1;

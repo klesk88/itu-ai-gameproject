@@ -1,3 +1,4 @@
+package connectFour;
 /**
  *
  * @author Kevin Tierney

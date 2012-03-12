@@ -1,3 +1,4 @@
+package connectFour;
 /**
  *
  * Parses command line parameters and initializes the connect four game.

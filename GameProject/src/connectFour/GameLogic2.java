@@ -1,3 +1,4 @@
+package connectFour;
 public class GameLogic2 implements IGameLogic {
 	private int x = 0;
 	private int y = 0;
