@@ -1,7 +1,7 @@
 import java.util.LinkedList;
 import java.util.List;
 
-public class MiniMax {
+public class MiniMax3 {
 
 	private int x = 0;// columns
 	private int y = 0;// raws
@@ -9,8 +9,12 @@ public class MiniMax {
 	private final int maximumDepth = 10;
 	private long timeCheck = 0;
 	private long timeRunning = 0;
+	private int[][] factors = { { 3, 4, 5, 7, 5, 4, 3 },
+			{ 4, 5, 8, 10, 8, 5, 4 }, { 5, 8, 11, 15, 11, 8, 5 },
+			{ 5, 8, 11, 15, 11, 8, 5 }, { 4, 6, 8, 10, 8, 6, 4 },
+			{ 3, 4, 5, 7, 5, 4, 3 } };
 
-	public MiniMax(int x, int y, int playerID) {
+	public MiniMax3(int x, int y, int playerID) {
 
 		this.x = x;
 		this.y = y;
@@ -319,9 +323,7 @@ public class MiniMax {
 						& gameBoard[i][j] != Integer.MIN_VALUE) {
 					if ((gameBoard[i][j] == 1 && this.playerID == 1)
 							|| (gameBoard[i][j] == 2 && this.playerID == 2)) {
-						int xFactor = (i > this.x / 2) ? this.x - i : i;
-						int yFactor = (j > this.y / 2) ? this.y - j : j;
-						result += 0.01 * (xFactor + yFactor);
+						result += 0.01 * this.factors[i][j];
 					}
 				}
 			}
@@ -386,8 +388,7 @@ public class MiniMax {
 			else {
 				coinsConnected++;
 			}
-			// Check if there are four coins in a row of the same player and
-			// there is a free space before or after
+			// Check if there are four coins in a row of the same player
 			if (coinsConnected == connected) {
 				if (connected == 3) {
 					if ((j >= 3 && gameBoard[lastX][j - 3] == Integer.MIN_VALUE)

@@ -7,7 +7,7 @@ public class GameLogic2 implements IGameLogic {
 	private int lastX;
 	/** This contains the last y coordinate where a coins where put. */
 	private int lastY;
-	private MiniMax2 mini_max;
+	private MiniMax3 mini_max;
 
 	public GameLogic2() {
 		// TODO Write your implementation for this method
@@ -19,7 +19,7 @@ public class GameLogic2 implements IGameLogic {
 		// Columns
 		this.y = x;
 		this.playerID = playerID;
-		mini_max = new MiniMax2(this.x, this.y, playerID);
+		mini_max = new MiniMax3(this.x, this.y, playerID);
 		this.lastX = Integer.MIN_VALUE;
 		this.lastY = Integer.MIN_VALUE;
 		this.gameBoard = new int[this.x][this.y];
