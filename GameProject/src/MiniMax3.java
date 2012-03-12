@@ -55,17 +55,18 @@ public class MiniMax3 {
 		double beta = Integer.MAX_VALUE;
 		int b = 0;
 		this.timeRunning = System.currentTimeMillis();
-		if (gameboard[0][this.y / 2 + this.y % 2 - 1] == Integer.MIN_VALUE) {
-			return this.y / 2 + this.y % 2 - 1;
-		} else if (gameboard[1][this.y / 2 + this.y % 2 - 1] == Integer.MIN_VALUE
-				&& gameboard[0][this.y / 2 + this.y % 2 - 1] != this.playerID) {
-			return this.y / 2 + this.y % 2 - 1;
-		}
+//		if (gameboard[0][this.y / 2 + this.y % 2 - 1] == Integer.MIN_VALUE) {
+//			return this.y / 2 + this.y % 2 - 1;
+//		} else if (gameboard[1][this.y / 2 + this.y % 2 - 1] == Integer.MIN_VALUE
+//				&& gameboard[0][this.y / 2 + this.y % 2 - 1] != this.playerID) {
+//			return this.y / 2 + this.y % 2 - 1;
+//		}
 		for (Action action : actions(gameboard, this.playerID)) {
 			v = Math.max(
 					v,
 					minDecision(result(gameboard, action), alpha, beta, 0,
 							action.column));
+			gameboard = recoverResult(gameboard, action);
 			System.out.println("Column: " + action.column + " value: " + v);
 			alpha = Math.max(alpha, v);
 			if (v > v1) {
@@ -96,6 +97,7 @@ public class MiniMax3 {
 					v,
 					minDecision(result(gameboard, action), alpha, beta, depth,
 							action.column));
+			gameboard = recoverResult(gameboard, action);
 			if (v >= beta) {
 				return v;
 			}
@@ -122,6 +124,7 @@ public class MiniMax3 {
 					v,
 					maxDecision(result(gameboard, action), alpha, beta, depth,
 							action.column));
+			gameboard = recoverResult(gameboard, action);
 			if (v <= alpha) {
 				return v;
 			}
@@ -170,21 +173,43 @@ public class MiniMax3 {
 	}
 
 	private int[][] result(int[][] gameboard, Action action) {
-		int[][] copy_gameboard = new int[this.x][this.y];
-		for (int i = 0; i < this.x; i++) {
-			for (int j = 0; j < this.y; j++) {
-				copy_gameboard[i][j] = gameboard[i][j];
-			}
-		}
+		// int[][] copy_gameboard = new int[this.x][this.y];
+		// for (int i = 0; i < this.x; i++) {
+		// for (int j = 0; j < this.y; j++) {
+		// copy_gameboard[i][j] = gameboard[i][j];
+		// }
+		// }
 
 		for (int i = 0; i < this.x; i++) {
 			if (gameboard[i][action.column] == Integer.MIN_VALUE) {
-				copy_gameboard[i][action.column] = action.player;
+				gameboard[i][action.column] = action.player;
 				break;
 			}
 		}
 
-		return copy_gameboard;
+		return gameboard;
+	}
+
+	private int[][] recoverResult(int[][] gameboard, Action action) {
+		// int[][] copy_gameboard = new int[this.x][this.y];
+		// for (int i = 0; i < this.x; i++) {
+		// for (int j = 0; j < this.y; j++) {
+		// copy_gameboard[i][j] = gameboard[i][j];
+		// }
+		// }
+
+		if (gameboard[this.x - 1][action.column] != Integer.MIN_VALUE) {
+			gameboard[this.x - 1][action.column] = Integer.MIN_VALUE;
+		} else {
+
+			for (int i = 0; i < this.x; i++) {
+				if (gameboard[i][action.column] == Integer.MIN_VALUE) {
+					gameboard[i - 1][action.column] = Integer.MIN_VALUE;
+					break;
+				}
+			}
+		}
+		return gameboard;
 	}
 
 	public double evaluation(int[][] gameBoard, IGameLogic.Winner player,
