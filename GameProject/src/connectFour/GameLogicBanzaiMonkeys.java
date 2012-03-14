@@ -1,6 +1,6 @@
 package connectFour;
 
-public class GameLogic implements IGameLogic {
+public class GameLogicBanzaiMonkeys implements IGameLogic {
 	/** The number of rows of the board. */
 	private int x = 0;
 	/** The number of columns of the board. */
@@ -14,9 +14,9 @@ public class GameLogic implements IGameLogic {
 	/** This contains the last y coordinate where a coins where put. */
 	private int lastY;
 	/** The minimax implementation. */
-	private MiniMax mini_max;
+	private Minimax mini_max;
 
-	public GameLogic() {
+	public GameLogicBanzaiMonkeys() {
 		// TODO Write your implementation for this method
 	}
 
@@ -26,7 +26,7 @@ public class GameLogic implements IGameLogic {
 		// Columns
 		this.y = x;
 		this.playerID = playerID;
-		mini_max = new MiniMax(this.x, this.y, playerID);
+		mini_max = new Minimax(this.x, this.y, playerID);
 		this.lastX = Integer.MIN_VALUE;
 		this.lastY = Integer.MIN_VALUE;
 		this.gameBoard = new int[this.x][this.y];
