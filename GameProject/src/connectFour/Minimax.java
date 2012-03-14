@@ -277,91 +277,117 @@ public class Minimax {
 				gameBoard, lastX, lastColumn, 4, this.x, this.y)) != IGameLogic.Winner.NOT_FINISHED) {
 			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
 					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
-				value = 1 + this.factors(gameBoard, lastX, lastColumn) * 0.01
-						* depth;
+				value = 1
+						+ this.factors(gameBoard, lastX, lastColumn,
+								this.playerID) - 0.01 * depth;
 			} else {
-				value = -1 + 0.01 * depth;
+				value = -1
+						- this.factors(gameBoard, lastX, lastColumn,
+								(this.playerID == 1) ? 2 : 1) + 0.01 * depth;
 			}
 		} else if ((result = ConnectedChecking.checkCrossPositionsUp(gameBoard,
 				lastX, lastColumn, 4, this.x, this.y)) != IGameLogic.Winner.NOT_FINISHED) {
 			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
 					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
-				value = 1 + this.factors(gameBoard, lastX, lastColumn) * 0.01
-						* depth;
+				value = 1
+						+ this.factors(gameBoard, lastX, lastColumn,
+								this.playerID) - 0.01 * depth;
 			} else {
-				value = -1 + 0.01 * depth;
+				value = -1
+						- this.factors(gameBoard, lastX, lastColumn,
+								(this.playerID == 1) ? 2 : 1) + 0.01 * depth;
 			}
 		} else if ((result = ConnectedChecking.checkHorizontalPositions(
 				gameBoard, lastX, lastColumn, 4, this.y)) != IGameLogic.Winner.NOT_FINISHED) {
 			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
 					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
-				value = 1 + this.factors(gameBoard, lastX, lastColumn) * 0.01
-						* depth;
+				value = 1
+						+ this.factors(gameBoard, lastX, lastColumn,
+								this.playerID) - 0.01 * depth;
 			} else {
-				value = -1 + 0.01 * depth;
+				value = -1
+						- this.factors(gameBoard, lastX, lastColumn,
+								(this.playerID == 1) ? 2 : 1) + 0.01 * depth;
 			}
 		} else if ((result = ConnectedChecking.checkVerticalPositions(
 				gameBoard, lastX, lastColumn, 4)) != IGameLogic.Winner.NOT_FINISHED) {
 			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
 					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
-				value = 1 + this.factors(gameBoard, lastX, lastColumn) * 0.01
-						* depth;
+				value = 1
+						+ this.factors(gameBoard, lastX, lastColumn,
+								this.playerID) - 0.01 * depth;
 			} else {
-				value = -1 + 0.01 * depth;
+				value = -1
+						- this.factors(gameBoard, lastX, lastColumn,
+								(this.playerID == 1) ? 2 : 1) + 0.01 * depth;
 			}
 		} else {
 			if ((result = ConnectedChecking.checkCrossPositionsDown(gameBoard,
 					lastX, lastColumn, 3, this.x, this.y)) != IGameLogic.Winner.NOT_FINISHED) {
 				if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
 						|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
-					value += 0.5 + this.factors(gameBoard, lastX, lastColumn);
+					value += 0.5 + this.factors(gameBoard, lastX, lastColumn,
+							this.playerID);
 				} else {
-					value += -0.5;
+					value += -0.5
+							- this.factors(gameBoard, lastX, lastColumn,
+									(this.playerID == 1) ? 2 : 1);
 				}
 			}
 			if ((result = ConnectedChecking.checkCrossPositionsUp(gameBoard,
 					lastX, lastColumn, 3, this.x, this.y)) != IGameLogic.Winner.NOT_FINISHED) {
 				if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
 						|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
-					value += 0.5 + this.factors(gameBoard, lastX, lastColumn);
+					value += 0.5 + this.factors(gameBoard, lastX, lastColumn,
+							this.playerID);
 				} else {
-					value += -0.5;
+					value += -0.5
+							- this.factors(gameBoard, lastX, lastColumn,
+									(this.playerID == 1) ? 2 : 1);
 				}
 			}
 			if ((result = ConnectedChecking.checkHorizontalPositions(gameBoard,
 					lastX, lastColumn, 3, this.y)) != IGameLogic.Winner.NOT_FINISHED) {
 				if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
 						|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
-					value += 0.5 + this.factors(gameBoard, lastX, lastColumn);
+					value += 0.5 + this.factors(gameBoard, lastX, lastColumn,
+							this.playerID);
 				} else {
-					value += -0.5;
+					value += -0.5
+							- this.factors(gameBoard, lastX, lastColumn,
+									(this.playerID == 1) ? 2 : 1);
 				}
 			}
 			if ((result = ConnectedChecking.checkVerticalPositions(gameBoard,
 					lastX, lastColumn, 3)) != IGameLogic.Winner.NOT_FINISHED) {
 				if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
 						|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
-					value += 0.5 + this.factors(gameBoard, lastX, lastColumn);
+					value += 0.5 + this.factors(gameBoard, lastX, lastColumn,
+							this.playerID);
 				} else {
-					value += -0.5;
+					value += -0.5
+							- this.factors(gameBoard, lastX, lastColumn,
+									(this.playerID == 1) ? 2 : 1);
 				}
 			}
 		}
 		if (value != 0) {
 			return value;
 		} else {
-			return this.factors(gameBoard, lastX, lastColumn);
+			return this.factors(gameBoard, lastX, lastColumn,
+					(player == IGameLogic.Winner.PLAYER1) ? 1 : 2);
 		}
 	}
 
-	private double factors(int[][] gameBoard, int lastX, int lastY) {
+	private double factors(int[][] gameBoard, int lastX, int lastY,
+			final int player) {
 		double result = 0.0;
 		for (int i = 0; i < this.x; i++) {
 			for (int j = 0; j < this.y; j++) {
 				if (Math.abs(i - lastX) < 3 && Math.abs(j - lastY) < 3
 						& gameBoard[i][j] != Integer.MIN_VALUE) {
-					if ((gameBoard[i][j] == 1 && this.playerID == 1)
-							|| (gameBoard[i][j] == 2 && this.playerID == 2)) {
+					if ((gameBoard[i][j] == 1 && player == 1)
+							|| (gameBoard[i][j] == 2 && player == 2)) {
 						result += 0.01 * this.factors[i][j];
 					}
 				}
