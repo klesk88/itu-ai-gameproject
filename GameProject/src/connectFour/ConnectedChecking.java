@@ -1,5 +1,10 @@
 package connectFour;
 
+/**
+ * This class has methods which are able to check if there is a number of coins
+ * in a row in different directions.
+ * 
+ */
 public class ConnectedChecking {
 	/**
 	 * Check if the game have finished with a tie.
@@ -96,12 +101,13 @@ public class ConnectedChecking {
 	}
 
 	/**
-	 * Check if there are four coins connected in cross.
+	 * Check if there are four coins connected in cross from the bottom to the
+	 * top.
 	 * 
 	 * @return Winner.NOT_FINISHED if there aren't four coins in a row in cross
 	 *         or the number of the player who has won if any.
 	 */
-	public static IGameLogic.Winner checkCrossPositions(
+	public static IGameLogic.Winner checkCrossPositionsUp(
 			final int[][] gameBoard, final int lastX, final int lastY,
 			final int connected, final int x, final int y) {
 		// Initialize the vars
@@ -140,10 +146,23 @@ public class ConnectedChecking {
 				return IGameLogic.Winner.NOT_FINISHED;
 			}
 		}
-		playerConnecting = Integer.MIN_VALUE;
-		coinsConnected = 1;
+		return IGameLogic.Winner.NOT_FINISHED;
+	}
 
-		border = Math.min(Math.min(x - lastX - 1, lastY), connected - 1);
+	/**
+	 * Check if there are four coins connected in cross from the top to the
+	 * bottom.
+	 * 
+	 * @return Winner.NOT_FINISHED if there aren't four coins in a row in cross
+	 *         or the number of the player who has won if any.
+	 */
+	public static IGameLogic.Winner checkCrossPositionsDown(
+			final int[][] gameBoard, final int lastX, final int lastY,
+			final int connected, final int x, final int y) {
+		int playerConnecting = Integer.MIN_VALUE;
+		int coinsConnected = 1;
+
+		int border = Math.min(Math.min(x - lastX - 1, lastY), connected - 1);
 		for (int i = Math.min(x - 1, lastX + border), j = Math.max(0, lastY
 				- border); i >= Math.max(0, lastX - (connected - 1))
 				&& j < Math.min(lastY + connected, y); i--, j++) {

@@ -1,15 +1,24 @@
 package connectFour;
+
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * Implementation of the minimax with alpha-beta pruning algorithm.
+ * 
+ */
 public class MiniMax {
 
 	private int x = 0;// columns
-	private int y = 0;// raws
+	private int y = 0;// rows
 	private int playerID = 0;
+	// The maximum depth of the tree
 	private final int maximumDepth = 10;
-	private long timeCheck = 0;
-	private long timeRunning = 0;
+	// The possible winning combinations from each position in a 7x6 board
+	private int[][] factors = { { 3, 4, 5, 7, 5, 4, 3 },
+			{ 4, 5, 8, 10, 8, 5, 4 }, { 5, 8, 11, 15, 11, 8, 5 },
+			{ 5, 8, 11, 15, 11, 8, 5 }, { 4, 6, 8, 10, 8, 6, 4 },
+			{ 3, 4, 5, 7, 5, 4, 3 } };
 
 	public MiniMax(int x, int y, int playerID) {
 
@@ -18,6 +27,11 @@ public class MiniMax {
 		this.playerID = playerID;
 	}
 
+	/**
+	 * An action is represented by the column where the coin is put and the
+	 * player who is playing that turn.
+	 * 
+	 */
 	private class Action {
 		int column;
 		int player;
@@ -28,30 +42,42 @@ public class MiniMax {
 		}
 	}
 
+	/**
+	 * Generates all the possible actions from a board and a player.
+	 * 
+	 * @param gameboard
+	 *            The state of the board.
+	 * @param player
+	 *            The player who is playing this turn.
+	 * @return The list of possible movements for that state and player.
+	 */
 	private List<Action> actions(int[][] gameboard, int player) {
 		List<Action> list_of_action = new LinkedList<Action>();
 
 		for (int j = 0; j < y; j++) {
-			// if there isn't no one in that position i put a coin inside that
-			// and i change column
+			// if the j position is empty add the position to the list
 			if (gameboard[x - 1][j] == Integer.MIN_VALUE) {
-				// copy_gameboard[i][j] = playerID; // result
-				// list_of_action.add(i);//add the column to the list
 				list_of_action.add(new Action(j, player));
 			}
 		}
-		return list_of_action;// i don't never have to came here
+		return list_of_action;
 	}
 
+	/**
+	 * Choose the best column where put a coin.
+	 * 
+	 * @param gameboard
+	 *            The state of the game.
+	 * @return The best column where put a coin.
+	 */
 	public int miniMax(int[][] gameboard) {
-		long start = System.currentTimeMillis();
-		this.timeCheck = 0;
 		double v = Integer.MIN_VALUE;
 		double v1 = Integer.MIN_VALUE;
 		double alpha = Integer.MIN_VALUE;
 		double beta = Integer.MAX_VALUE;
-		int b = 0;
-		this.timeRunning = System.currentTimeMillis();
+		int chosenColumn = 0;
+		// If it is one of the first two movements it just choose the positions
+		// in the center
 		if (gameboard[0][this.y / 2 + this.y % 2 - 1] == Integer.MIN_VALUE) {
 			return this.y / 2 + this.y % 2 - 1;
 		} else if (gameboard[1][this.y / 2 + this.y % 2 - 1] == Integer.MIN_VALUE
@@ -63,78 +89,88 @@ public class MiniMax {
 					v,
 					minDecision(result(gameboard, action), alpha, beta, 0,
 							action.column));
+			// Since result(gameboard, action) modifies the values in gameboard
+			// it is necessary recover the state
 			gameboard = recoverResult(gameboard, action);
 			System.out.println("Column: " + action.column + " value: " + v);
 			alpha = Math.max(alpha, v);
 			if (v > v1) {
-				b = action.column;
+				chosenColumn = action.column;
 				v1 = v;
 			}
 		}
-		System.out.println("Time: "
-				+ Long.toString(System.currentTimeMillis() - start));
-		// int v = maxDecision(gameboard,Integer.MIN_VALUE,Integer.MAX_VALUE);
-		System.out.println("Time checking: " + this.timeCheck);
-		System.out.println();
-		return b;
+		return chosenColumn;
 	}
 
-	private double maxDecision(int[][] gameboard, double alpha, double beta,
-			int depth, int lastColumn) {
+	private double maxDecision(int[][] gameboard, double alpha,
+			final double beta, int depth, final int lastColumn) {
 		depth++;
+		// Check if the state is a final state of it is the maximum depth
 		if (cutoff_test(gameboard, depth, lastColumn)) {
 			return evaluation(gameboard,
 					playerID == 1 ? IGameLogic.Winner.PLAYER1
-							: IGameLogic.Winner.PLAYER2, lastColumn);
+							: IGameLogic.Winner.PLAYER2, lastColumn, depth);
 		}
-		// assign the min value of the integers to this variable
+		// Assigns the min value of the integers to this variable
 		double v = Integer.MIN_VALUE;
 		for (Action action : actions(gameboard, this.playerID)) {
 			v = Math.max(
 					v,
 					minDecision(result(gameboard, action), alpha, beta, depth,
 							action.column));
+			// Since result(gameboard, action) modifies the values in gameboard
+			// it is necessary recover the state
 			gameboard = recoverResult(gameboard, action);
 			if (v >= beta) {
 				return v;
 			}
-
 			alpha = Math.max(alpha, v);
 		}
-
 		return v;
 	}
 
-	private double minDecision(int[][] gameboard, double alpha, double beta,
-			int depth, int lastColumn) {
+	private double minDecision(int[][] gameboard, final double alpha,
+			double beta, int depth, final int lastColumn) {
 		depth++;
+		// Check if the state is a final state of it is the maximum depth
 		if (cutoff_test(gameboard, depth, lastColumn)) {
 			return evaluation(gameboard,
 					playerID == 1 ? IGameLogic.Winner.PLAYER1
-							: IGameLogic.Winner.PLAYER2, lastColumn);
+							: IGameLogic.Winner.PLAYER2, lastColumn, depth);
 		}
-		// assign the min value of the integers to this variable
+		// Assigns the min value of the integers to this variable
 		double v = Integer.MAX_VALUE;
 		for (Action action : actions(gameboard, this.playerID % 2 + 1)) {
-
 			v = Math.min(
 					v,
 					maxDecision(result(gameboard, action), alpha, beta, depth,
 							action.column));
+			// Since result(gameboard, action) modifies the values in gameboard
+			// it is necessary recover the state
 			gameboard = recoverResult(gameboard, action);
 			if (v <= alpha) {
 				return v;
 			}
-
 			beta = Math.min(beta, v);
 		}
-
 		return v;
 	}
 
-	private boolean cutoff_test(int[][] gameBoard, int depth, int lastColumn) {
-		IGameLogic.Winner player = this.playerID == 1 ? IGameLogic.Winner.PLAYER1
-				: IGameLogic.Winner.PLAYER2;
+	/**
+	 * Check if the passed state is a final state. It checks if there are 4
+	 * coins in a row or the depth is the maximum depth.
+	 * 
+	 * @param gameBoard
+	 *            The state to check.
+	 * @param depth
+	 *            The maximum depth.
+	 * @param lastColumn
+	 *            The column where the last movement was done.
+	 * @return True if it is a final state or it is the maximum depth.
+	 */
+	private boolean cutoff_test(final int[][] gameBoard, final int depth,
+			final int lastColumn) {
+		// Search the x position of the last movement
 		int lastX = 0;
 		for (int i = this.x - 1; i > 0; i--) {
 			if (gameBoard[i][lastColumn] != Integer.MIN_VALUE) {
@@ -142,63 +178,57 @@ public class MiniMax {
 				break;
 			}
 		}
-		long start = System.currentTimeMillis();
-		if (this.checkTie(gameBoard) == IGameLogic.Winner.TIE) {
-			this.timeCheck += System.currentTimeMillis() - start;
-			return true;
-		} else if (this.checkCrossPositions(gameBoard, lastX, lastColumn, 4) != IGameLogic.Winner.NOT_FINISHED) {
-			this.timeCheck += System.currentTimeMillis() - start;
-			return true;
-		} else if (this.checkHorizontalPositions(gameBoard, lastX, lastColumn,
-				4) != IGameLogic.Winner.NOT_FINISHED) {
-			this.timeCheck += System.currentTimeMillis() - start;
-			return true;
-		} else if (this.checkVerticalPositions(gameBoard, lastX, lastColumn, 4) != IGameLogic.Winner.NOT_FINISHED) {
-			this.timeCheck += System.currentTimeMillis() - start;
+		// Check if the game has finished
+		if ((depth > this.maximumDepth)
+				| (ConnectedChecking.checkTie(gameBoard, this.x, this.y) == IGameLogic.Winner.TIE)
+				| (ConnectedChecking.checkCrossPositionsDown(gameBoard, lastX,
+						lastColumn, 4, this.x, this.y) != IGameLogic.Winner.NOT_FINISHED)
+				| (ConnectedChecking.checkCrossPositionsUp(gameBoard, lastX,
+						lastColumn, 4, this.x, this.y) != IGameLogic.Winner.NOT_FINISHED)
+				| (ConnectedChecking.checkHorizontalPositions(gameBoard, lastX,
+						lastColumn, 4, this.y) != IGameLogic.Winner.NOT_FINISHED)
+				| (ConnectedChecking.checkVerticalPositions(gameBoard, lastX,
+						lastColumn, 4) != IGameLogic.Winner.NOT_FINISHED)) {
 			return true;
 		}
-		// else if ((System.currentTimeMillis() - this.timeRunning) > 10000) {
-		// this.timeCheck += System.currentTimeMillis() - start;
-		// return true;
-		// }
-		else if (depth > this.maximumDepth) {
-			this.timeCheck += System.currentTimeMillis() - start;
-			return true;
-		}
-		this.timeCheck += System.currentTimeMillis() - start;
 		return false;
 	}
 
-	private int[][] result(int[][] gameboard, Action action) {
-		// int[][] copy_gameboard = new int[this.x][this.y];
-		// for (int i = 0; i < this.x; i++) {
-		// for (int j = 0; j < this.y; j++) {
-		// copy_gameboard[i][j] = gameboard[i][j];
-		// }
-		// }
-
+	/**
+	 * Modifies the state of the board adding the new action. For efficiency it
+	 * doesn't copy the board to a new one, instead it modifies the existing
+	 * board.
+	 * 
+	 * @param gameboard
+	 *            The board to modify.
+	 * @param action
+	 *            The action than is being done.
+	 * @return The new state.
+	 */
+	private int[][] result(int[][] gameboard, final Action action) {
 		for (int i = 0; i < this.x; i++) {
 			if (gameboard[i][action.column] == Integer.MIN_VALUE) {
 				gameboard[i][action.column] = action.player;
 				break;
 			}
 		}
-
 		return gameboard;
 	}
 
-	private int[][] recoverResult(int[][] gameboard, Action action) {
-		// int[][] copy_gameboard = new int[this.x][this.y];
-		// for (int i = 0; i < this.x; i++) {
-		// for (int j = 0; j < this.y; j++) {
-		// copy_gameboard[i][j] = gameboard[i][j];
-		// }
-		// }
-
+	/**
+	 * Recovers the state than was before the action passed.
+	 * 
+	 * @param gameboard
+	 *            The state to recover.
+	 * @param action
+	 *            The action to undo.
+	 * @return The modified state.
+	 */
+	private int[][] recoverResult(int[][] gameboard, final Action action) {
+		// If it is the top position of the column
 		if (gameboard[this.x - 1][action.column] != Integer.MIN_VALUE) {
 			gameboard[this.x - 1][action.column] = Integer.MIN_VALUE;
 		} else {
-
 			for (int i = 0; i < this.x; i++) {
 				if (gameboard[i][action.column] == Integer.MIN_VALUE) {
 					gameboard[i - 1][action.column] = Integer.MIN_VALUE;
@@ -206,136 +236,123 @@ public class MiniMax {
 				}
 			}
 		}
-
 		return gameboard;
 	}
 
-	public double evaluation(int[][] gameBoard, IGameLogic.Winner player,
-			int lastColumn) {
-		long start = System.currentTimeMillis();
+	/**
+	 * Evaluates a position and return a number than will be positive it is
+	 * probably a winning condition or negative if it is a losing position. If
+	 * the number is bigger than 1 it is probably a very good idea choose that
+	 * position. If it is smaller than -1 it is a very bad idea choose that
+	 * position.
+	 * 
+	 * @param gameBoard
+	 *            The state of the game.
+	 * @param player
+	 *            The who is playing the last turn.
+	 * @param lastColumn
+	 *            The column where the last coin was put.
+	 * @return A number showing the expected "probability" of winning from this
+	 *         state.
+	 */
+	private final double evaluation(final int[][] gameBoard,
+			final IGameLogic.Winner player, final int lastColumn,
+			final int depth) {
+		// The result than it is going to return
 		IGameLogic.Winner result;
 		int lastX = 0;
+		// In value it puts the calculates value for this state
 		double value = 0;
+		// Search for the lastX
 		for (int i = this.x - 1; i > 0; i--) {
 			if (gameBoard[i][lastColumn] != Integer.MIN_VALUE) {
 				lastX = i;
 				break;
 			}
 		}
-		if (this.checkTie(gameBoard) == IGameLogic.Winner.TIE) {
-			this.timeCheck += System.currentTimeMillis() - start;
-			value = 0;
-		} else if ((result = this.checkCrossPositions(gameBoard, lastX,
-				lastColumn, 4)) != IGameLogic.Winner.NOT_FINISHED) {
+		if (ConnectedChecking.checkTie(gameBoard, this.x, this.y) == IGameLogic.Winner.TIE) {
+			// It returns here to distinguishes this case to the case where you
+			// aren't able to find any good stuff.
+			return 0;
+		} else if ((result = ConnectedChecking.checkCrossPositionsDown(
+				gameBoard, lastX, lastColumn, 4, this.x, this.y)) != IGameLogic.Winner.NOT_FINISHED) {
 			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
 					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
-				this.timeCheck += System.currentTimeMillis() - start;
-				value = 1 + this.foo(gameBoard, lastX, lastColumn);
+				value = 1 + this.foo(gameBoard, lastX, lastColumn) * 0.01
+						* depth;
 			} else {
-				this.timeCheck += System.currentTimeMillis() - start;
-				value = -1 + this.foo(gameBoard, lastX, lastColumn);
+				value = -1 + 0.01 * depth;
 			}
-		} else if ((result = this.checkHorizontalPositions(gameBoard, lastX,
-				lastColumn, 4)) != IGameLogic.Winner.NOT_FINISHED) {
+		} else if ((result = ConnectedChecking.checkCrossPositionsUp(gameBoard,
+				lastX, lastColumn, 4, this.x, this.y)) != IGameLogic.Winner.NOT_FINISHED) {
 			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
 					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
-				this.timeCheck += System.currentTimeMillis() - start;
-				value = 1 + this.foo(gameBoard, lastX, lastColumn);
+				value = 1 + this.foo(gameBoard, lastX, lastColumn) * 0.01
+						* depth;
 			} else {
-				this.timeCheck += System.currentTimeMillis() - start;
-				value = -1 + this.foo(gameBoard, lastX, lastColumn);
+				value = -1 + 0.01 * depth;
 			}
-		} else if ((result = this.checkVerticalPositions(gameBoard, lastX,
-				lastColumn, 4)) != IGameLogic.Winner.NOT_FINISHED) {
+		} else if ((result = ConnectedChecking.checkHorizontalPositions(
+				gameBoard, lastX, lastColumn, 4, this.y)) != IGameLogic.Winner.NOT_FINISHED) {
 			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
 					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
-				this.timeCheck += System.currentTimeMillis() - start;
-				value = 1 + this.foo(gameBoard, lastX, lastColumn);
+				value = 1 + this.foo(gameBoard, lastX, lastColumn) * 0.01
+						* depth;
 			} else {
-				this.timeCheck += System.currentTimeMillis() - start;
-				value = -1 + this.foo(gameBoard, lastX, lastColumn);
+				value = -1 + 0.01 * depth;
 			}
-		} else if ((result = this.checkCrossPositions(gameBoard, lastX,
-				lastColumn, 3)) != IGameLogic.Winner.NOT_FINISHED) {
+		} else if ((result = ConnectedChecking.checkVerticalPositions(
+				gameBoard, lastX, lastColumn, 4)) != IGameLogic.Winner.NOT_FINISHED) {
 			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
 					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
-				this.timeCheck += System.currentTimeMillis() - start;
-				value = 0.5 + this.foo(gameBoard, lastX, lastColumn);
+				value = 1 + this.foo(gameBoard, lastX, lastColumn) * 0.01
+						* depth;
 			} else {
-				this.timeCheck += System.currentTimeMillis() - start;
-				value = -0.5 + this.foo(gameBoard, lastX, lastColumn);
+				value = -1 + 0.01 * depth;
 			}
-		} else if ((result = this.checkHorizontalPositions(gameBoard, lastX,
-				lastColumn, 3)) != IGameLogic.Winner.NOT_FINISHED) {
-			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
-					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
-				this.timeCheck += System.currentTimeMillis() - start;
-				value = 0.5 + this.foo(gameBoard, lastX, lastColumn);
-			} else {
-				this.timeCheck += System.currentTimeMillis() - start;
-				value = -0.5 + this.foo(gameBoard, lastX, lastColumn);
+		} else {
+			if ((result = ConnectedChecking.checkCrossPositionsDown(gameBoard,
+					lastX, lastColumn, 3, this.x, this.y)) != IGameLogic.Winner.NOT_FINISHED) {
+				if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
+						|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
+					value += 0.5 + this.foo(gameBoard, lastX, lastColumn);
+				} else {
+					value += -0.5;
+				}
 			}
-		} else if ((result = this.checkVerticalPositions(gameBoard, lastX,
-				lastColumn, 3)) != IGameLogic.Winner.NOT_FINISHED) {
-			if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
-					|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
-				this.timeCheck += System.currentTimeMillis() - start;
-				value = 0.5 + this.foo(gameBoard, lastX, lastColumn);
-			} else {
-				this.timeCheck += System.currentTimeMillis() - start;
-				value = -0.5 + this.foo(gameBoard, lastX, lastColumn);
+			if ((result = ConnectedChecking.checkCrossPositionsUp(gameBoard,
+					lastX, lastColumn, 3, this.x, this.y)) != IGameLogic.Winner.NOT_FINISHED) {
+				if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
+						|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
+					value += 0.5 + this.foo(gameBoard, lastX, lastColumn);
+				} else {
+					value += -0.5;
+				}
 			}
-		} // else if ((result = this.checkCrossPositions(gameBoard, lastX,
-			// lastColumn, 2)) != IGameLogic.Winner.NOT_FINISHED) {
-			// if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
-			// || (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
-			// this.timeCheck += System.currentTimeMillis() - start;
-			// return 0.5;
-			// } else {
-			// this.timeCheck += System.currentTimeMillis() - start;
-			// return -0.5;
-			// }
-			// } else if ((result = this.checkHorizontalPositions(gameBoard,
-			// lastX,
-			// lastColumn, 2)) != IGameLogic.Winner.NOT_FINISHED) {
-			// if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
-			// || (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
-			// this.timeCheck += System.currentTimeMillis() - start;
-			// return 0.5;
-			// } else {
-			// this.timeCheck += System.currentTimeMillis() - start;
-			// return -0.5;
-			// }
-			// } else if ((result = this.checkVerticalPositions(gameBoard,
-			// lastX,
-			// lastColumn, 2)) != IGameLogic.Winner.NOT_FINISHED) {
-			// if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
-			// || (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
-			// this.timeCheck += System.currentTimeMillis() - start;
-			// return 0.5;
-			// } else {
-			// this.timeCheck += System.currentTimeMillis() - start;
-			// return -0.5;
-			// }
-			// }
-		this.timeCheck += System.currentTimeMillis() - start;
-		return value;
-	}
-
-	/**
-	 * Check if the game have finished with a tie.
-	 * 
-	 * @return Winner.NOT_FINISHED if the game hasn't finished or Winner.TIE if
-	 *         the game has finished and none player has won.
-	 */
-	private IGameLogic.Winner checkTie(int[][] gameBoard) {
-		// Check the top position of every column
-		for (int j = 0; j < this.y; j++) {
-			if (gameBoard[this.x - 1][j] == Integer.MIN_VALUE) {
-				return IGameLogic.Winner.NOT_FINISHED;
+			if ((result = ConnectedChecking.checkHorizontalPositions(gameBoard,
+					lastX, lastColumn, 3, this.y)) != IGameLogic.Winner.NOT_FINISHED) {
+				if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
+						|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
+					value += 0.5 + this.foo(gameBoard, lastX, lastColumn);
+				} else {
+					value += -0.5;
+				}
+			}
+			if ((result = ConnectedChecking.checkVerticalPositions(gameBoard,
+					lastX, lastColumn, 3)) != IGameLogic.Winner.NOT_FINISHED) {
+				if ((result == IGameLogic.Winner.PLAYER1 && this.playerID == 1)
+						|| (result == IGameLogic.Winner.PLAYER2 && this.playerID == 2)) {
+					value += 0.5 + this.foo(gameBoard, lastX, lastColumn);
+				} else {
+					value += -0.5;
+				}
 			}
 		}
-		return IGameLogic.Winner.TIE;
+		if (value != 0) {
+			return value;
+		} else {
+			return this.foo(gameBoard, lastX, lastColumn);
+		}
 	}
 
 	private double foo(int[][] gameBoard, int lastX, int lastY) {
@@ -346,9 +363,7 @@ public class MiniMax {
 						& gameBoard[i][j] != Integer.MIN_VALUE) {
 					if ((gameBoard[i][j] == 1 && this.playerID == 1)
 							|| (gameBoard[i][j] == 2 && this.playerID == 2)) {
-						int xFactor = (i > this.x / 2) ? this.x - i : i;
-						int yFactor = (j > this.y / 2) ? this.y - j : j;
-						result += 0.01 * (xFactor + yFactor);
+						result += 0.01 * this.factors[i][j];
 					}
 				}
 			}
@@ -356,159 +371,4 @@ public class MiniMax {
 		return result;
 	}
 
-	/**
-	 * Check if there are four coins connected in vertical.
-	 * 
-	 * @return Winner.NOT_FINISHED if there aren't four coins in a row in
-	 *         vertical or the number of the player who has won if any.
-	 */
-	private IGameLogic.Winner checkVerticalPositions(int[][] gameBoard,
-			int lastX, int lastY, int connected) {
-
-		// Check the vertical positions
-		int playerConnecting = Integer.MIN_VALUE;
-		int coinsConnected = 1;
-		for (int i = Math.max(0, lastX - (connected - 1)); i <= lastX; i++) {
-			// If it is empty or different from the coin before
-			if (gameBoard[i][lastY] == Integer.MIN_VALUE
-					| gameBoard[i][lastY] != playerConnecting) {
-				coinsConnected = 1;
-				playerConnecting = gameBoard[i][lastY];
-			}
-			// If the coins in the current position is the same than before
-			// it increment the counter.
-			else {
-				coinsConnected++;
-			}
-			// Check if there are four coins in a row of the same player
-			if (coinsConnected == connected) {
-				return (playerConnecting == 1) ? IGameLogic.Winner.PLAYER1
-						: IGameLogic.Winner.PLAYER2;
-			}
-		}
-		return IGameLogic.Winner.NOT_FINISHED;
-	}
-
-	/**
-	 * Check if there are four coins connected in horizontal.
-	 * 
-	 * @return Winner.NOT_FINISHED if there aren't four coins in a row in
-	 *         horizontal or the number of the player who has won if any.
-	 */
-	private IGameLogic.Winner checkHorizontalPositions(int[][] gameBoard,
-			int lastX, int lastY, int connected) {
-		// Check the horizontal positions
-		int playerConnecting = Integer.MIN_VALUE;
-		int coinsConnected = 1;
-		for (int j = Math.max(0, lastY - (connected - 1)); j <= Math.min(
-				this.y - 1, lastY + 3); j++) {
-			// If it is empty or different from the coin before
-			if (gameBoard[lastX][j] == Integer.MIN_VALUE
-					| gameBoard[lastX][j] != playerConnecting) {
-				coinsConnected = 1;
-				playerConnecting = gameBoard[lastX][j];
-			}
-			// If the coins in the current position is the same than before
-			// it increment the counter.
-			else {
-				coinsConnected++;
-			}
-			// Check if there are four coins in a row of the same player and
-			// there is a free space before or after
-			if (coinsConnected == connected) {
-				if (connected == 3) {
-					if ((j >= 3 && gameBoard[lastX][j - 3] == Integer.MIN_VALUE)
-							| (j < (this.y - 1) && gameBoard[lastX][j + 1] == Integer.MIN_VALUE)) {
-						return (playerConnecting == 1) ? IGameLogic.Winner.PLAYER1
-								: IGameLogic.Winner.PLAYER2;
-					}
-				} else if (connected == 4) {
-					return (playerConnecting == 1) ? IGameLogic.Winner.PLAYER1
-							: IGameLogic.Winner.PLAYER2;
-				}
-				return IGameLogic.Winner.NOT_FINISHED;
-			}
-		}
-		return IGameLogic.Winner.NOT_FINISHED;
-	}
-
-	/**
-	 * Check if there are four coins connected in cross.
-	 * 
-	 * @return Winner.NOT_FINISHED if there aren't four coins in a row in cross
-	 *         or the number of the player who has won if any.
-	 */
-	private IGameLogic.Winner checkCrossPositions(int[][] gameBoard, int lastX,
-			int lastY, int connected) {
-		// Initialize the vars
-		int playerConnecting = Integer.MIN_VALUE;
-		int coinsConnected = 1;
-		// This var contains the value to calculate where to start to search for
-		// 4 in a row
-		int border = Math.min(Math.min(lastX, lastY), connected - 1);
-		// In this loop check the rows
-		for (int i = Math.max(0, lastX - border), j = Math.max(0, lastY
-				- border); i < Math.min(lastX + connected, this.x)
-				&& j < Math.min(lastY + 4, this.y); i++, j++) {
-			// If it is empty or different from the coin before
-			if (gameBoard[i][j] == Integer.MIN_VALUE
-					| gameBoard[i][j] != playerConnecting) {
-				coinsConnected = 1;
-				playerConnecting = gameBoard[i][j];
-			}
-			// If the coins in the current position is the same than
-			// before it increments the counter.
-			else {
-				coinsConnected++;
-			}
-			// Check if there are four coins in a row of the same player
-			if (coinsConnected == connected) {
-				if (connected == 3) {
-					if (((i >= 3 & j >= 3) && gameBoard[i - 3][j - 3] == Integer.MIN_VALUE)
-							| (i < (this.x - 1) & (j < (this.y - 1)) && gameBoard[i + 1][j + 1] == Integer.MIN_VALUE)) {
-						return (playerConnecting == 1) ? IGameLogic.Winner.PLAYER1
-								: IGameLogic.Winner.PLAYER2;
-					}
-				} else if (connected == 4) {
-					return (playerConnecting == 1) ? IGameLogic.Winner.PLAYER1
-							: IGameLogic.Winner.PLAYER2;
-				}
-				return IGameLogic.Winner.NOT_FINISHED;
-			}
-		}
-		playerConnecting = Integer.MIN_VALUE;
-		coinsConnected = 1;
-
-		border = Math.min(Math.min(this.x - lastX - 1, lastY), connected - 1);
-		for (int i = Math.min(this.x - 1, lastX + border), j = Math.max(0,
-				lastY - border); i >= Math.max(0, lastX - (connected - 1))
-				&& j < Math.min(lastY + connected, this.y); i--, j++) {
-			// If it is empty or different from the coin before
-			if (gameBoard[i][j] == Integer.MIN_VALUE
-					| gameBoard[i][j] != playerConnecting) {
-				coinsConnected = 1;
-				playerConnecting = gameBoard[i][j];
-			}
-			// If the coins in the current position is the same than
-			// before it increments the counter.
-			else {
-				coinsConnected++;
-			}
-			// Check if there are four coins in a row of the same player
-			if (coinsConnected == connected) {
-				if (connected == 3) {
-					if (((i < (this.x - 3) & j >= 3) && gameBoard[i + 3][j - 3] == Integer.MIN_VALUE)
-							| (i > 1 & (j < (this.y - 1)) && gameBoard[i - 1][j + 1] == Integer.MIN_VALUE)) {
-						return (playerConnecting == 1) ? IGameLogic.Winner.PLAYER1
-								: IGameLogic.Winner.PLAYER2;
-					}
-				} else if (connected == 4) {
-					return (playerConnecting == 1) ? IGameLogic.Winner.PLAYER1
-							: IGameLogic.Winner.PLAYER2;
-				}
-				return IGameLogic.Winner.NOT_FINISHED;
-			}
-		}
-		return IGameLogic.Winner.NOT_FINISHED;
-	}
 }
